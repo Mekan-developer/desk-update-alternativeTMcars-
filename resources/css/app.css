@@ -1,0 +1,23 @@
+@import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;500;600;700;800;900&family=Inter:wght@400;500;600;700&display=swap');
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+body { font-family: 'Nunito', sans-serif; }
+.font-data { font-family: 'Inter', sans-serif; }
+
+/* Toggle switch */
+.tog { @apply relative w-[44px] h-6 cursor-pointer; }
+.tog input { @apply opacity-0 w-0 h-0 absolute; }
+.tog-slider { @apply absolute inset-0 rounded-pill bg-line transition-colors duration-200; }
+.tog-slider::before { content:''; @apply absolute w-[18px] h-[18px] rounded-full bg-white left-[3px] top-[3px] transition-transform duration-200 shadow-sm; }
+.tog input:checked ~ .tog-slider { @apply bg-blue; }
+.tog input:checked ~ .tog-slider::before { @apply translate-x-5; }
+
+/* Theme transitions */
+body, .card-theme { transition: background .3s, color .3s, border-color .3s; }
+
+/* Scrollbars */
+::-webkit-scrollbar { width: 5px; height: 5px; }
+::-webkit-scrollbar-thumb { background: #e2e8f0; border-radius: 6px; }
+.dark ::-webkit-scrollbar-thumb { background: #2d3748; }
