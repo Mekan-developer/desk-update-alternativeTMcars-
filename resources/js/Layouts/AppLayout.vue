@@ -54,6 +54,10 @@ const sections = computed(() => [
         { label: t('nav.statistics'), routeName: 'statistics.index',  icon: 'chart' },
         ...(user.value?.role === 'admin' ? [{ label: t('nav.push'), routeName: 'push.index', icon: 'bell' }] : []),
     ]},
+    { title: 'МОНИТОРИНГ', items: [
+        { label: 'Horizon (Queues)', href: '/horizon', icon: 'horizon', external: true },
+        { label: 'Reverb (WS)',     icon: 'reverb', statusKey: 'reverb' },
+    ]},
 ])
 
 function isActive(routeName) {
@@ -92,36 +96,71 @@ function logout() {
           <div v-if="!collapsed" class="px-4 pt-4 pb-1 text-[10px] font-black uppercase tracking-[.12em] text-white/25">
             {{ section.title }}
           </div>
-          <Link
-            v-for="item in section.items" :key="item.routeName"
-            :href="route(item.routeName)"
-            class="flex items-center gap-3 mx-2 px-3 py-2.5 rounded-[10px] transition-all duration-150 group"
-            :class="isActive(item.routeName)
-              ? 'bg-blue text-white shadow-[0_4px_12px_rgba(67,97,238,.4)]'
-              : 'text-white/60 hover:bg-white/8 hover:text-white'"
-          >
-            <!-- Icons -->
-            <span class="flex-shrink-0 w-5 h-5">
-              <svg v-if="item.icon === 'grid'" fill="none" stroke="currentColor" viewBox="0 0 24 24" class="w-5 h-5"><rect x="3" y="3" width="7" height="7" stroke-width="2" stroke-linecap="round"/><rect x="14" y="3" width="7" height="7" stroke-width="2" stroke-linecap="round"/><rect x="14" y="14" width="7" height="7" stroke-width="2" stroke-linecap="round"/><rect x="3" y="14" width="7" height="7" stroke-width="2" stroke-linecap="round"/></svg>
-              <svg v-else-if="item.icon === 'users'" fill="none" stroke="currentColor" viewBox="0 0 24 24" class="w-5 h-5"><path stroke-width="2" stroke-linecap="round" d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4" stroke-width="2"/><path stroke-width="2" stroke-linecap="round" d="M23 21v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75"/></svg>
-              <svg v-else-if="item.icon === 'listing'" fill="none" stroke="currentColor" viewBox="0 0 24 24" class="w-5 h-5"><path stroke-width="2" stroke-linecap="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01"/></svg>
-              <svg v-else-if="item.icon === 'video'" fill="none" stroke="currentColor" viewBox="0 0 24 24" class="w-5 h-5"><polygon stroke-width="2" stroke-linecap="round" points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2" ry="2" stroke-width="2"/></svg>
-              <svg v-else-if="item.icon === 'chat'" fill="none" stroke="currentColor" viewBox="0 0 24 24" class="w-5 h-5"><path stroke-width="2" stroke-linecap="round" d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg>
-              <svg v-else-if="item.icon === 'folder'" fill="none" stroke="currentColor" viewBox="0 0 24 24" class="w-5 h-5"><path stroke-width="2" stroke-linecap="round" d="M22 19a2 2 0 01-2 2H4a2 2 0 01-2-2V5a2 2 0 012-2h5l2 3h9a2 2 0 012 2z"/></svg>
-              <svg v-else-if="item.icon === 'map'" fill="none" stroke="currentColor" viewBox="0 0 24 24" class="w-5 h-5"><polygon stroke-width="2" stroke-linecap="round" points="1 6 1 22 8 18 16 22 23 18 23 2 16 6 8 2 1 6"/><line x1="8" y1="2" x2="8" y2="18" stroke-width="2"/><line x1="16" y1="6" x2="16" y2="22" stroke-width="2"/></svg>
-              <svg v-else-if="item.icon === 'news'" fill="none" stroke="currentColor" viewBox="0 0 24 24" class="w-5 h-5"><path stroke-width="2" stroke-linecap="round" d="M4 6h16M4 10h16M4 14h8M4 18h8"/><rect x="2" y="3" width="20" height="18" rx="2" stroke-width="2"/></svg>
-              <svg v-else-if="item.icon === 'flag'" fill="none" stroke="currentColor" viewBox="0 0 24 24" class="w-5 h-5"><path stroke-width="2" stroke-linecap="round" d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z"/><line x1="4" y1="22" x2="4" y2="15" stroke-width="2"/></svg>
-              <svg v-else-if="item.icon === 'star'" fill="none" stroke="currentColor" viewBox="0 0 24 24" class="w-5 h-5"><polygon stroke-width="2" stroke-linecap="round" points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
-              <svg v-else-if="item.icon === 'tag'" fill="none" stroke="currentColor" viewBox="0 0 24 24" class="w-5 h-5"><path stroke-width="2" stroke-linecap="round" d="M20.59 13.41l-7.17 7.17a2 2 0 01-2.83 0L2 12V2h10l8.59 8.59a2 2 0 010 2.82z"/><line x1="7" y1="7" x2="7.01" y2="7" stroke-width="2"/></svg>
-              <svg v-else-if="item.icon === 'chart'" fill="none" stroke="currentColor" viewBox="0 0 24 24" class="w-5 h-5"><line x1="18" y1="20" x2="18" y2="10" stroke-width="2"/><line x1="12" y1="20" x2="12" y2="4" stroke-width="2"/><line x1="6" y1="20" x2="6" y2="14" stroke-width="2"/></svg>
-              <svg v-else-if="item.icon === 'bell'" fill="none" stroke="currentColor" viewBox="0 0 24 24" class="w-5 h-5"><path stroke-width="2" stroke-linecap="round" d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9"/><path stroke-width="2" d="M13.73 21a2 2 0 01-3.46 0"/></svg>
-            </span>
-            <span v-if="!collapsed" class="flex-1 text-[13px] font-bold truncate">{{ item.label }}</span>
-            <span
-              v-if="item.badge && counts[item.badge] > 0 && !collapsed"
-              class="rounded-pill bg-pink px-[6px] py-0.5 text-[10px] font-extrabold text-white"
-            >{{ counts[item.badge] }}</span>
-          </Link>
+
+          <template v-for="item in section.items" :key="item.routeName || item.label">
+            <!-- External link (Horizon) -->
+            <a
+              v-if="item.external"
+              :href="item.href"
+              target="_blank"
+              rel="noopener"
+              class="flex items-center gap-3 mx-2 px-3 py-2.5 rounded-[10px] transition-all duration-150 text-white/60 hover:bg-white/8 hover:text-white"
+            >
+              <span class="flex-shrink-0 w-5 h-5">
+                <svg v-if="item.icon === 'horizon'" fill="none" stroke="currentColor" viewBox="0 0 24 24" class="w-5 h-5"><circle cx="12" cy="12" r="3" stroke-width="2"/><path stroke-width="2" stroke-linecap="round" d="M12 2v3M12 19v3M4.22 4.22l2.12 2.12M17.66 17.66l2.12 2.12M2 12h3M19 12h3M4.22 19.78l2.12-2.12M17.66 6.34l2.12-2.12"/></svg>
+              </span>
+              <span v-if="!collapsed" class="flex-1 text-[13px] font-bold truncate">{{ item.label }}</span>
+              <svg v-if="!collapsed" class="h-3 w-3 text-white/30 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-width="2" d="M18 13v6a2 2 0 01-2 2H5a2 2 0 01-2-2V8a2 2 0 012-2h6M15 3h6v6M10 14L21 3"/></svg>
+            </a>
+
+            <!-- Reverb status (no link, just indicator) -->
+            <div
+              v-else-if="item.statusKey === 'reverb'"
+              class="flex items-center gap-3 mx-2 px-3 py-2.5 rounded-[10px] text-white/60"
+            >
+              <span class="flex-shrink-0 w-5 h-5">
+                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" class="w-5 h-5"><path stroke-width="2" stroke-linecap="round" d="M8.5 19A9 9 0 105 15.5M2 12h.01"/><path stroke-width="2" stroke-linecap="round" d="M6 12a6 6 0 106-6M9 12h.01"/></svg>
+              </span>
+              <div v-if="!collapsed" class="flex-1 min-w-0">
+                <div class="text-[13px] font-bold truncate">{{ item.label }}</div>
+                <div class="flex items-center gap-1 mt-0.5">
+                  <span class="h-1.5 w-1.5 rounded-full bg-green-400 animate-pulse"></span>
+                  <span class="text-[10px] text-green-400 font-semibold">running</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Normal Inertia link -->
+            <Link
+              v-else
+              :href="route(item.routeName)"
+              class="flex items-center gap-3 mx-2 px-3 py-2.5 rounded-[10px] transition-all duration-150 group"
+              :class="isActive(item.routeName)
+                ? 'bg-blue text-white shadow-[0_4px_12px_rgba(67,97,238,.4)]'
+                : 'text-white/60 hover:bg-white/8 hover:text-white'"
+            >
+              <span class="flex-shrink-0 w-5 h-5">
+                <svg v-if="item.icon === 'grid'" fill="none" stroke="currentColor" viewBox="0 0 24 24" class="w-5 h-5"><rect x="3" y="3" width="7" height="7" stroke-width="2" stroke-linecap="round"/><rect x="14" y="3" width="7" height="7" stroke-width="2" stroke-linecap="round"/><rect x="14" y="14" width="7" height="7" stroke-width="2" stroke-linecap="round"/><rect x="3" y="14" width="7" height="7" stroke-width="2" stroke-linecap="round"/></svg>
+                <svg v-else-if="item.icon === 'users'" fill="none" stroke="currentColor" viewBox="0 0 24 24" class="w-5 h-5"><path stroke-width="2" stroke-linecap="round" d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4" stroke-width="2"/><path stroke-width="2" stroke-linecap="round" d="M23 21v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75"/></svg>
+                <svg v-else-if="item.icon === 'listing'" fill="none" stroke="currentColor" viewBox="0 0 24 24" class="w-5 h-5"><path stroke-width="2" stroke-linecap="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01"/></svg>
+                <svg v-else-if="item.icon === 'video'" fill="none" stroke="currentColor" viewBox="0 0 24 24" class="w-5 h-5"><polygon stroke-width="2" stroke-linecap="round" points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2" ry="2" stroke-width="2"/></svg>
+                <svg v-else-if="item.icon === 'chat'" fill="none" stroke="currentColor" viewBox="0 0 24 24" class="w-5 h-5"><path stroke-width="2" stroke-linecap="round" d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg>
+                <svg v-else-if="item.icon === 'folder'" fill="none" stroke="currentColor" viewBox="0 0 24 24" class="w-5 h-5"><path stroke-width="2" stroke-linecap="round" d="M22 19a2 2 0 01-2 2H4a2 2 0 01-2-2V5a2 2 0 012-2h5l2 3h9a2 2 0 012 2z"/></svg>
+                <svg v-else-if="item.icon === 'map'" fill="none" stroke="currentColor" viewBox="0 0 24 24" class="w-5 h-5"><polygon stroke-width="2" stroke-linecap="round" points="1 6 1 22 8 18 16 22 23 18 23 2 16 6 8 2 1 6"/><line x1="8" y1="2" x2="8" y2="18" stroke-width="2"/><line x1="16" y1="6" x2="16" y2="22" stroke-width="2"/></svg>
+                <svg v-else-if="item.icon === 'news'" fill="none" stroke="currentColor" viewBox="0 0 24 24" class="w-5 h-5"><path stroke-width="2" stroke-linecap="round" d="M4 6h16M4 10h16M4 14h8M4 18h8"/><rect x="2" y="3" width="20" height="18" rx="2" stroke-width="2"/></svg>
+                <svg v-else-if="item.icon === 'flag'" fill="none" stroke="currentColor" viewBox="0 0 24 24" class="w-5 h-5"><path stroke-width="2" stroke-linecap="round" d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z"/><line x1="4" y1="22" x2="4" y2="15" stroke-width="2"/></svg>
+                <svg v-else-if="item.icon === 'star'" fill="none" stroke="currentColor" viewBox="0 0 24 24" class="w-5 h-5"><polygon stroke-width="2" stroke-linecap="round" points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+                <svg v-else-if="item.icon === 'tag'" fill="none" stroke="currentColor" viewBox="0 0 24 24" class="w-5 h-5"><path stroke-width="2" stroke-linecap="round" d="M20.59 13.41l-7.17 7.17a2 2 0 01-2.83 0L2 12V2h10l8.59 8.59a2 2 0 010 2.82z"/><line x1="7" y1="7" x2="7.01" y2="7" stroke-width="2"/></svg>
+                <svg v-else-if="item.icon === 'chart'" fill="none" stroke="currentColor" viewBox="0 0 24 24" class="w-5 h-5"><line x1="18" y1="20" x2="18" y2="10" stroke-width="2"/><line x1="12" y1="20" x2="12" y2="4" stroke-width="2"/><line x1="6" y1="20" x2="6" y2="14" stroke-width="2"/></svg>
+                <svg v-else-if="item.icon === 'bell'" fill="none" stroke="currentColor" viewBox="0 0 24 24" class="w-5 h-5"><path stroke-width="2" stroke-linecap="round" d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9"/><path stroke-width="2" d="M13.73 21a2 2 0 01-3.46 0"/></svg>
+              </span>
+              <span v-if="!collapsed" class="flex-1 text-[13px] font-bold truncate">{{ item.label }}</span>
+              <span
+                v-if="item.badge && counts[item.badge] > 0 && !collapsed"
+                class="rounded-pill bg-pink px-[6px] py-0.5 text-[10px] font-extrabold text-white"
+              >{{ counts[item.badge] }}</span>
+            </Link>
+          </template>
         </template>
       </nav>
 
