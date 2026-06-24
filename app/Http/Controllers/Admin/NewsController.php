@@ -3,88 +3,67 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Admin\StoreNewsRequest;
 use App\Models\News;
+use App\Services\NewsService;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 
 class NewsController extends Controller
 {
+    public function __construct(
+        private readonly NewsService $newsService,
+    ) {}
+
     public function index(Request $request)
     {
-        $news = News::when($request->search, fn($q, $s) => $q->where('title_ru', 'like', "%$s%"))
-            ->when($request->type, fn($q, $t) => $q->where('type', $t))
-            ->latest()
-            ->paginate(20)
-            ->withQueryString();
-
         return Inertia::render('News/Index', [
-            'news'    => $news,
-            'filters' => $request->only('search', 'type'),
+            'news'    => $this->newsService->list($request->only('search', 'type', 'published')),
+            'filters' => $request->only('search', 'type', 'published'),
         ]);
     }
 
-    public function store(Request $request)
+    public function store(StoreNewsRequest $request)
     {
-        $data = $request->validate([
-            'title_ru'    => 'required|string|max:255',
-            'title_tk'    => 'required|string|max:255',
-            'body_ru'     => 'required|string',
-            'body_tk'     => 'required|string',
-            'type'        => 'required|in:regular,advertising',
-            'link_type'   => 'nullable|string',
-            'link_id'     => 'nullable|integer',
-            'is_published' => 'boolean',
-        ]);
+        $this->newsService->store(
+            $request->safe()->except('image'),
+            $request->user(),
+            $request->file('image'),
+        );
 
-        if (! empty($data['is_published']) && $data['is_published']) {
-            $data['published_at'] = now();
-        }
-
-        News::create($data);
-
-        return back()->with('toast', ['type' => 'success', 'message' => 'Новость создана']);
+        return back()->with('toast', ['type' => 'success', 'message' => __('messages.created')]);
     }
 
-    public function update(Request $request, News $news)
+    public function update(StoreNewsRequest $request, News $news)
     {
-        $data = $request->validate([
-            'title_ru'    => 'sometimes|string|max:255',
-            'title_tk'    => 'sometimes|string|max:255',
-            'body_ru'     => 'sometimes|string',
-            'body_tk'     => 'sometimes|string',
-            'type'        => 'sometimes|in:regular,advertising',
-            'link_type'   => 'nullable|string',
-            'link_id'     => 'nullable|integer',
-            'is_published' => 'boolean',
-        ]);
+        $this->newsService->update(
+            $news,
+            $request->safe()->except('image'),
+            $request->file('image'),
+        );
 
-        $news->update($data);
-
-        return back()->with('toast', ['type' => 'success', 'message' => 'Новость обновлена']);
+        return back()->with('toast', ['type' => 'success', 'message' => __('messages.updated')]);
     }
 
-    public function destroy(Request $request, News $news)
+    public function destroy(News $news)
     {
-        if (! $request->user()->isAdmin()) {
-            abort(403);
-        }
+        abort_unless(request()->user()->isAdmin(), 403);
+        $this->newsService->delete($news);
 
-        $news->delete();
-
-        return back()->with('toast', ['type' => 'success', 'message' => 'Новость удалена']);
+        return back()->with('toast', ['type' => 'success', 'message' => __('messages.deleted')]);
     }
 
     public function publish(News $news)
     {
-        $news->update(['is_published' => true, 'published_at' => now()]);
+        $this->newsService->publish($news);
 
-        return back()->with('toast', ['type' => 'success', 'message' => 'Опубликовано']);
+        return back()->with('toast', ['type' => 'success', 'message' => __('messages.published')]);
     }
 
     public function unpublish(News $news)
     {
-        $news->update(['is_published' => false]);
+        $this->newsService->unpublish($news);
 
-        return back()->with('toast', ['type' => 'success', 'message' => 'Снято с публикации']);
+        return back()->with('toast', ['type' => 'success', 'message' => __('messages.unpublished')]);
     }
 }

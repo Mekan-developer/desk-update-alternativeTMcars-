@@ -2,76 +2,69 @@
 
 namespace App\Http\Controllers\Admin;
 
+use App\Actions\ApproveVideoAction;
+use App\Actions\RejectVideoAction;
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Admin\RejectVideoRequest;
 use App\Models\RejectionReason;
 use App\Models\Video;
+use App\Services\VideoService;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 
 class VideoController extends Controller
 {
+    public function __construct(
+        private readonly VideoService $videoService,
+        private readonly ApproveVideoAction $approveAction,
+        private readonly RejectVideoAction $rejectAction,
+    ) {}
+
     public function index(Request $request)
     {
-        $videos = Video::with('user')
-            ->when($request->status, fn($q, $s) => $q->where('status', $s))
-            ->when($request->search, fn($q, $s) => $q->where('title', 'like', "%$s%"))
-            ->latest()
-            ->paginate(25)
-            ->withQueryString();
-
         return Inertia::render('Videos/Index', [
-            'videos'           => $videos,
+            'videos'           => $this->videoService->list($request->only('status', 'search')),
             'rejectionReasons' => RejectionReason::where('type', 'video')->where('is_active', true)->get(),
             'filters'          => $request->only('status', 'search'),
-            'counts'           => [
-                'pending'  => Video::where('status', 'pending')->count(),
-                'approved' => Video::where('status', 'approved')->count(),
-                'rejected' => Video::where('status', 'rejected')->count(),
-            ],
+            'counts'           => $this->videoService->counts(),
         ]);
     }
 
     public function show(Video $video)
     {
-        $video->load('user', 'rejectionReason');
-
         return Inertia::render('Videos/Show', [
-            'video'            => $video,
+            'video'            => $video->load('user', 'rejectionReason'),
             'rejectionReasons' => RejectionReason::where('type', 'video')->where('is_active', true)->get(),
         ]);
     }
 
     public function update(Request $request, Video $video)
     {
-        $video->update($request->only('title', 'status'));
+        $video->update($request->only('title'));
 
-        return back()->with('toast', ['type' => 'success', 'message' => 'Обновлено']);
+        return back()->with('toast', ['type' => 'success', 'message' => __('messages.updated')]);
     }
 
-    public function destroy(Request $request, Video $video)
+    public function destroy(Video $video)
     {
-        if (! $request->user()->isAdmin()) {
-            abort(403);
-        }
-
-        $video->delete();
+        abort_unless(request()->user()->isAdmin(), 403);
+        $this->videoService->delete($video);
 
         return redirect()->route('videos.index')
-            ->with('toast', ['type' => 'success', 'message' => 'Ролик удалён']);
+            ->with('toast', ['type' => 'success', 'message' => __('messages.deleted')]);
     }
 
     public function approve(Video $video)
     {
-        $video->update(['status' => 'approved', 'rejection_reason_id' => null]);
+        $this->approveAction->execute($video);
 
-        return back()->with('toast', ['type' => 'success', 'message' => 'Ролик одобрен']);
+        return back()->with('toast', ['type' => 'success', 'message' => __('messages.video_approved')]);
     }
 
-    public function reject(Request $request, Video $video)
+    public function reject(RejectVideoRequest $request, Video $video)
     {
-        $data = $request->validate(['rejection_reason_id' => 'required|exists:rejection_reasons,id']);
-        $video->update(['status' => 'rejected', 'rejection_reason_id' => $data['rejection_reason_id']]);
+        $this->rejectAction->execute($video, $request->validated('rejection_reason_id'));
 
-        return back()->with('toast', ['type' => 'error', 'message' => 'Ролик отклонён']);
+        return back()->with('toast', ['type' => 'error', 'message' => __('messages.video_rejected')]);
     }
 }

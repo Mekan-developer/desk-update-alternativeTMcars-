@@ -3,67 +3,45 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
-use App\Models\Message;
+use App\Http\Requests\Admin\ChatReplyRequest;
 use App\Models\User;
-use Illuminate\Http\Request;
-use Illuminate\Support\Facades\DB;
+use App\Services\ChatService;
 use Inertia\Inertia;
 
 class ChatController extends Controller
 {
+    public function __construct(
+        private readonly ChatService $chatService,
+    ) {}
+
     public function index()
     {
-        $dialogs = User::where('role', 'user')
-            ->whereHas('messages')
-            ->with(['messages' => fn($q) => $q->latest()->take(1)])
-            ->withCount(['messages as unread_count' => fn($q) => $q->where('sender', 'user')->where('is_read', false)])
-            ->latest('updated_at')
-            ->paginate(30);
-
         return Inertia::render('Chat/Index', [
-            'dialogs' => $dialogs,
+            'dialogs' => $this->chatService->dialogs(),
         ]);
     }
 
     public function show(User $user)
     {
-        $messages = Message::where('user_id', $user->id)
-            ->orderBy('created_at')
-            ->get();
-
-        Message::where('user_id', $user->id)->where('sender', 'user')->update(['is_read' => true]);
-
-        $dialogs = User::where('role', 'user')
-            ->whereHas('messages')
-            ->with(['messages' => fn($q) => $q->latest()->take(1)])
-            ->withCount(['messages as unread_count' => fn($q) => $q->where('sender', 'user')->where('is_read', false)])
-            ->latest('updated_at')
-            ->get();
+        $this->chatService->markRead($user->id);
 
         return Inertia::render('Chat/Show', [
             'chatUser' => $user,
-            'messages' => $messages,
-            'dialogs'  => $dialogs,
+            'messages' => $this->chatService->messages($user->id),
+            'dialogs'  => $this->chatService->dialogs(),
         ]);
     }
 
-    public function reply(Request $request, User $user)
+    public function reply(ChatReplyRequest $request, User $user)
     {
-        $data = $request->validate(['text' => 'required|string|max:2000']);
-
-        Message::create([
-            'user_id'  => $user->id,
-            'sender'   => 'admin',
-            'admin_id' => $request->user()->id,
-            'text'     => $data['text'],
-        ]);
+        $this->chatService->reply($user, $request->validated('content'));
 
         return back();
     }
 
     public function markRead(User $user)
     {
-        Message::where('user_id', $user->id)->where('sender', 'user')->update(['is_read' => true]);
+        $this->chatService->markRead($user->id);
 
         return back();
     }

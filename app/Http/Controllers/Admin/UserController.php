@@ -2,128 +2,99 @@
 
 namespace App\Http\Controllers\Admin;
 
+use App\Actions\AssignTariffAction;
+use App\Actions\BlockUserAction;
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Admin\AssignTariffRequest;
+use App\Http\Requests\Admin\BlockUserRequest;
+use App\Http\Requests\Admin\StoreUserRequest;
+use App\Http\Requests\Admin\UpdateUserRequest;
+use App\Models\Complaint;
 use App\Models\Region;
 use App\Models\Tariff;
 use App\Models\User;
-use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Hash;
+use App\Services\UserService;
 use Inertia\Inertia;
 
 class UserController extends Controller
 {
-    public function index(Request $request)
-    {
-        $users = User::with('region', 'city', 'tariff')
-            ->where('role', 'user')
-            ->when($request->search, fn($q, $s) => $q->where('phone', 'like', "%$s%")->orWhere('name', 'like', "%$s%"))
-            ->when($request->status, fn($q, $s) => $q->where('status', $s))
-            ->when($request->region_id, fn($q, $r) => $q->where('region_id', $r))
-            ->latest()
-            ->paginate(25)
-            ->withQueryString();
+    public function __construct(
+        private readonly UserService $userService,
+        private readonly BlockUserAction $blockAction,
+        private readonly AssignTariffAction $assignTariffAction,
+    ) {}
 
+    public function index(\Illuminate\Http\Request $request)
+    {
         return Inertia::render('Users/Index', [
-            'users'   => $users,
+            'users'   => $this->userService->list($request->only('search', 'status', 'region_id')),
             'regions' => Region::all(),
             'tariffs' => Tariff::where('is_active', true)->get(),
             'filters' => $request->only('search', 'status', 'region_id'),
         ]);
     }
 
-    public function store(Request $request)
+    public function store(StoreUserRequest $request)
     {
-        if ($request->role !== 'user' && ! $request->user()->isAdmin()) {
+        if ($request->validated('role') !== 'user' && ! $request->user()->isAdmin()) {
             abort(403);
         }
 
-        $data = $request->validate([
-            'name'      => 'required|string|max:255',
-            'phone'     => 'required|string|unique:users,phone',
-            'password'  => 'required|string|min:6|confirmed',
-            'role'      => 'required|in:admin,manager,user',
-            'gender'    => 'nullable|in:male,female',
-            'region_id' => 'nullable|exists:regions,id',
-            'city_id'   => 'nullable|exists:cities,id',
-        ]);
+        $this->userService->store($request->validated());
 
-        $data['password'] = Hash::make($data['password']);
-
-        User::create($data);
-
-        return back()->with('toast', ['type' => 'success', 'message' => 'Пользователь создан']);
+        return back()->with('toast', ['type' => 'success', 'message' => __('messages.created')]);
     }
 
     public function show(User $user)
     {
         $user->load('region', 'city', 'tariff');
 
-        $userListings = $user->listings()->with('category', 'region')->latest()->take(10)->get();
-
         return Inertia::render('Users/Show', [
             'user'         => $user,
-            'userListings' => $userListings,
+            'userListings' => $user->listings()->with('category', 'region')->latest()->take(10)->get(),
             'stats'        => [
                 'listings'   => $user->listings()->count(),
                 'videos'     => $user->videos()->count(),
-                'complaints' => \App\Models\Complaint::where('user_id', $user->id)->count(),
+                'complaints' => Complaint::where('user_id', $user->id)->count(),
             ],
         ]);
     }
 
-    public function update(Request $request, User $user)
+    public function update(UpdateUserRequest $request, User $user)
     {
-        $data = $request->validate([
-            'name'      => 'sometimes|string|max:255',
-            'note'      => 'nullable|string',
-            'region_id' => 'nullable|exists:regions,id',
-            'city_id'   => 'nullable|exists:cities,id',
-        ]);
+        $this->userService->update($user, $request->validated());
 
-        $user->update($data);
-
-        return back()->with('toast', ['type' => 'success', 'message' => 'Сохранено']);
+        return back()->with('toast', ['type' => 'success', 'message' => __('messages.updated')]);
     }
 
-    public function destroy(Request $request, User $user)
+    public function destroy(User $user)
     {
-        if (! $request->user()->isAdmin()) {
-            abort(403, 'Только администратор может удалять пользователей');
-        }
-
-        $user->delete();
+        abort_unless(request()->user()->isAdmin(), 403, __('messages.admin_only'));
+        $this->userService->delete($user);
 
         return redirect()->route('users.index')
-            ->with('toast', ['type' => 'success', 'message' => 'Пользователь удалён']);
+            ->with('toast', ['type' => 'success', 'message' => __('messages.deleted')]);
     }
 
-    public function block(Request $request, User $user)
+    public function block(BlockUserRequest $request, User $user)
     {
-        $data = $request->validate(['reason' => 'nullable|string']);
-        $user->update(['status' => 'blocked', 'blocked_reason' => $data['reason'] ?? null]);
+        $this->blockAction->execute($user, $request->validated('reason'));
 
-        return back()->with('toast', ['type' => 'success', 'message' => 'Пользователь заблокирован']);
+        return back()->with('toast', ['type' => 'success', 'message' => __('messages.user_blocked')]);
     }
 
     public function unblock(User $user)
     {
-        $user->update(['status' => 'active', 'blocked_reason' => null]);
+        $this->userService->unblock($user);
 
-        return back()->with('toast', ['type' => 'success', 'message' => 'Пользователь разблокирован']);
+        return back()->with('toast', ['type' => 'success', 'message' => __('messages.user_unblocked')]);
     }
 
-    public function assignTariff(Request $request, User $user)
+    public function assignTariff(AssignTariffRequest $request, User $user)
     {
-        $data = $request->validate([
-            'tariff_id' => 'required|exists:tariffs,id',
-        ]);
+        $tariff = Tariff::findOrFail($request->validated('tariff_id'));
+        $this->assignTariffAction->execute($user, $tariff);
 
-        $tariff = Tariff::findOrFail($data['tariff_id']);
-        $user->update([
-            'tariff_id'      => $tariff->id,
-            'tariff_ends_at' => now()->addDays($tariff->duration_days),
-        ]);
-
-        return back()->with('toast', ['type' => 'success', 'message' => 'Тариф назначен']);
+        return back()->with('toast', ['type' => 'success', 'message' => __('messages.tariff_assigned')]);
     }
 }

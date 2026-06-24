@@ -3,68 +3,51 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Admin\StoreTariffRequest;
 use App\Models\Tariff;
+use App\Services\TariffService;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 
 class TariffController extends Controller
 {
+    public function __construct(
+        private readonly TariffService $tariffService,
+    ) {}
+
     public function index()
     {
         return Inertia::render('Tariffs/Index', [
-            'tariffs' => Tariff::withCount('users')->get(),
+            'tariffs' => $this->tariffService->all(),
         ]);
     }
 
-    public function store(Request $request)
+    public function store(StoreTariffRequest $request)
     {
-        $data = $request->validate([
-            'name'           => 'required|string|max:255',
-            'listings_limit' => 'required|integer|min:0',
-            'videos_limit'   => 'required|integer|min:0',
-            'boosts_limit'   => 'required|integer|min:0',
-            'duration_days'  => 'required|integer|min:1',
-            'is_free'        => 'boolean',
-            'is_active'      => 'boolean',
-        ]);
+        $this->tariffService->store($request->validated());
 
-        Tariff::create($data);
-
-        return back()->with('toast', ['type' => 'success', 'message' => 'Тариф добавлен']);
+        return back()->with('toast', ['type' => 'success', 'message' => __('messages.created')]);
     }
 
-    public function update(Request $request, Tariff $tariff)
+    public function update(StoreTariffRequest $request, Tariff $tariff)
     {
-        $data = $request->validate([
-            'name'           => 'sometimes|string|max:255',
-            'listings_limit' => 'sometimes|integer|min:0',
-            'videos_limit'   => 'sometimes|integer|min:0',
-            'boosts_limit'   => 'sometimes|integer|min:0',
-            'duration_days'  => 'sometimes|integer|min:1',
-            'is_free'        => 'boolean',
-            'is_active'      => 'boolean',
-        ]);
+        $this->tariffService->update($tariff, $request->validated());
 
-        $tariff->update($data);
-
-        return back()->with('toast', ['type' => 'success', 'message' => 'Тариф обновлён']);
+        return back()->with('toast', ['type' => 'success', 'message' => __('messages.updated')]);
     }
 
-    public function destroy(Request $request, Tariff $tariff)
+    public function destroy(Tariff $tariff)
     {
-        if (! $request->user()->isAdmin()) {
-            abort(403);
-        }
+        abort_unless(request()->user()->isAdmin(), 403);
+        $this->tariffService->delete($tariff);
 
-        $tariff->delete();
-
-        return back()->with('toast', ['type' => 'success', 'message' => 'Тариф удалён']);
+        return back()->with('toast', ['type' => 'success', 'message' => __('messages.deleted')]);
     }
 
     public function toggle(Tariff $tariff)
     {
-        $tariff->update(['is_active' => ! $tariff->is_active]);
+        $this->tariffService->update($tariff, ['is_active' => ! $tariff->is_active]);
 
-        return back()->with('toast', ['type' => 'success', 'message' => 'Обновлено']);
+        return back()->with('toast', ['type' => 'success', 'message' => __('messages.updated')]);
     }
 }
