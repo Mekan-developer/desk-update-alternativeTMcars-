@@ -71,6 +71,12 @@ const messages = {
             manager: 'Менеджер',
             user: 'Пользователь',
         },
+        topbar: {
+            langLabel: 'язык панели',
+            lightTheme: 'светлая тема',
+            darkTheme: 'тёмная тема',
+            notifications: 'уведомления',
+        },
     },
     tk: {
         nav: {
@@ -141,6 +147,12 @@ const messages = {
             admin: 'Administrator',
             manager: 'Dolandyryjy',
             user: 'Ulanyjy',
+        },
+        topbar: {
+            langLabel: 'panel dili',
+            lightTheme: 'ýagty tema',
+            darkTheme: 'garaňky tema',
+            notifications: 'bildirişler',
         },
     },
 }

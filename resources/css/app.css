@@ -6,6 +6,60 @@
 body { font-family: 'Nunito', sans-serif; }
 .font-data { font-family: 'Inter', sans-serif; }
 
+/* Redesigned shell (sidebar / topbar / Push-уведомления) — tokens per
+   design_handoff_admin_ui_redesign/README.md, direction 1b (light) / 1c (dark). */
+:root {
+    --sidebar-bg: #ffffff;
+    --sidebar-border: #EAEAF0;
+    --sidebar-text: #53566B;
+    --sidebar-text-strong: #15172B;
+    --sidebar-muted: #9497A8;
+    --section-label: #B3B5C4;
+    --nav-hover: #F4F4F8;
+    --accent: #4F46E5;
+    --accent-hover: #4338CA;
+    --accent-tint: #EEEDFB;
+    --content-bg: #FAFAFC;
+    --card-bg: #ffffff;
+    --card-border: #EAEAF0;
+    --card-shadow: 0 8px 24px rgba(20, 20, 40, .06);
+    --text: #15172B;
+    --text-secondary: #5A5D72;
+    --text-muted: #9497A8;
+    --field-bg: #FAFAFC;
+    --field-border: #E3E4EC;
+    --field-disabled-bg: #F1F1F5;
+    --status-ok: #22C55E;
+    --status-bad: #EF4444;
+    --status-glow: none;
+}
+
+.dark {
+    --sidebar-bg: #14172A;
+    --sidebar-border: rgba(255, 255, 255, .08);
+    --sidebar-text: rgba(255, 255, 255, .68);
+    --sidebar-text-strong: #F5F5FA;
+    --sidebar-muted: rgba(255, 255, 255, .4);
+    --section-label: rgba(255, 255, 255, .3);
+    --nav-hover: rgba(255, 255, 255, .05);
+    --accent: #6D63F2;
+    --accent-hover: #7C73F5;
+    --accent-tint: rgba(109, 99, 242, .16);
+    --content-bg: #1B1E33;
+    --card-bg: #20233B;
+    --card-border: rgba(255, 255, 255, .08);
+    --card-shadow: none;
+    --text: #F1F1F6;
+    --text-secondary: #A6A8BC;
+    --text-muted: #787C94;
+    --field-bg: #181B2E;
+    --field-border: rgba(255, 255, 255, .1);
+    --field-disabled-bg: #15182A;
+    --status-ok: #4ADE80;
+    --status-bad: #F26D6D;
+    --status-glow: 0 0 6px currentColor;
+}
+
 /* Toggle switch */
 .tog { @apply relative w-[44px] h-6 cursor-pointer; }
 .tog input { @apply opacity-0 w-0 h-0 absolute; }

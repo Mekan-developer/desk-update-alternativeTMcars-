@@ -42,6 +42,8 @@ export default {
             fontFamily: {
                 sans: ['Nunito', ...defaultTheme.fontFamily.sans],
                 data: ['Inter', 'sans-serif'],
+                golos: ['Golos Text', ...defaultTheme.fontFamily.sans],
+                plexmono: ['IBM Plex Mono', 'monospace'],
             },
         },
     },

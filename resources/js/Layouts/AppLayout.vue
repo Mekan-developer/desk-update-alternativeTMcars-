@@ -3,6 +3,8 @@ import { ref, computed, onMounted, watch } from 'vue'
 import { Link, router, usePage } from '@inertiajs/vue3'
 import { useI18n } from 'vue-i18n'
 import Toasts from '@/Components/Toasts.vue'
+import ServiceStatus from '@/Components/ServiceStatus.vue'
+import Icon from '@/Components/Icon.vue'
 
 const { t, locale } = useI18n()
 
@@ -31,38 +33,47 @@ const page = usePage()
 const user   = computed(() => page.props.auth?.user)
 const counts = computed(() => page.props.counts || {})
 
+const initials = computed(() => {
+    const name = user.value?.name?.trim()
+    if (!name) return 'АД'
+    const parts = name.split(/\s+/)
+    return (parts[0][0] + (parts[1]?.[0] ?? '')).toUpperCase()
+})
+
+const roleLabel = computed(() => user.value?.role ? t(`role.${user.value.role}`) : '')
+const notificationsTotal = computed(() => Object.values(counts.value).reduce((sum, n) => sum + (n || 0), 0))
+
 // ── Menu ───────────────────────────────────────────────────────────────────
 const sections = computed(() => [
-    { title: 'ГЛАВНОЕ', items: [
+    { title: 'ГЛАВНОЕ', eyebrow: 'Главное', items: [
         { label: t('nav.dashboard'),   routeName: 'dashboard',         icon: 'grid' },
         { label: t('nav.users'),       routeName: 'users.index',       icon: 'users',   badge: 'newUsers' },
         { label: t('nav.listings'),    routeName: 'listings.index',    icon: 'listing', badge: 'pendingListings' },
         { label: t('nav.videos'),      routeName: 'videos.index',      icon: 'video',   badge: 'pendingVideos' },
         { label: t('nav.chat'),        routeName: 'chat.index',        icon: 'chat',    badge: 'unreadChats' },
     ]},
-    { title: 'КОНТЕНТ', items: [
-        { label: t('nav.categories'),  routeName: 'categories.index',  icon: 'folder' },
-        { label: t('nav.regions'),     routeName: 'regions.index',     icon: 'map' },
+    { title: 'КОНТЕНТ', eyebrow: 'Контент', items: [
+        { label: t('nav.categories'),  routeName: 'categories.index',  icon: 'tag' },
+        { label: t('nav.regions'),     routeName: 'regions.index',     icon: 'pin' },
         { label: t('nav.news'),        routeName: 'news.index',        icon: 'news' },
     ]},
-    { title: 'МОДЕРАЦИЯ', items: [
+    { title: 'МОДЕРАЦИЯ', eyebrow: 'Модерация', items: [
         { label: t('nav.complaints'),  routeName: 'complaints.index',  icon: 'flag',  badge: 'newComplaints' },
         { label: t('nav.reviews'),     routeName: 'reviews.index',     icon: 'star',  badge: 'pendingReviews' },
     ]},
-    { title: 'СИСТЕМА', items: [
-        { label: t('nav.tariffs'),     routeName: 'tariffs.index',     icon: 'tag' },
+    { title: 'СИСТЕМА', eyebrow: 'Система', items: [
+        { label: t('nav.tariffs'),     routeName: 'tariffs.index',     icon: 'coin' },
         { label: t('nav.statistics'), routeName: 'statistics.index',  icon: 'chart' },
         ...(user.value?.role === 'admin' ? [{ label: t('nav.push'), routeName: 'push.index', icon: 'bell' }] : []),
     ]},
-    { title: 'МОНИТОРИНГ', items: [
-        { label: 'Horizon (Queues)', href: '/horizon', icon: 'horizon', external: true },
-        { label: 'Reverb (WS)',     icon: 'reverb', statusKey: 'reverb' },
-    ]},
+    { title: 'МОНИТОРИНГ', eyebrow: 'Мониторинг', items: [] },
 ])
 
 function isActive(routeName) {
     try { return route().current(routeName) } catch { return false }
 }
+
+const eyebrow = computed(() => sections.value.find(s => s.items.some(i => isActive(i.routeName)))?.eyebrow ?? '')
 
 // ── User menu ──────────────────────────────────────────────────────────────
 const userMenuOpen = ref(false)
@@ -73,162 +84,149 @@ function logout() {
 </script>
 
 <template>
-  <div class="flex h-screen overflow-hidden bg-surface dark:bg-dbg">
+  <div class="flex h-screen overflow-hidden font-golos">
 
     <!-- ── SIDEBAR ──────────────────────────────────────────────────────── -->
     <aside
-      class="flex flex-col flex-shrink-0 bg-navy transition-all duration-300 overflow-hidden"
-      :style="{ width: collapsed ? '68px' : '240px' }"
+      class="flex flex-shrink-0 flex-col bg-[var(--sidebar-bg)] border-r border-[var(--sidebar-border)] transition-all duration-300 overflow-hidden box-border"
+      :style="{ width: collapsed ? '68px' : '252px', padding: collapsed ? '18px 10px 16px' : '18px 14px 16px' }"
     >
-      <!-- Logo -->
-      <div class="flex items-center gap-3 px-4 py-5 border-b border-white/10">
-        <div class="flex-shrink-0 flex h-9 w-9 items-center justify-center rounded-[9px] bg-blue">
-          <svg class="h-5 w-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M3 6h18M3 12h18M3 18h18"/>
-          </svg>
+      <!-- Brand -->
+      <div class="flex items-center gap-2.5 px-1.5 pt-1 pb-[22px]">
+        <div class="flex h-[34px] w-[34px] flex-none items-center justify-center rounded-[9px] bg-[var(--accent)] text-white dark:shadow-[0_0_0_4px_var(--accent-tint)]">
+          <Icon kind="menu" :size="17" />
         </div>
-        <span v-if="!collapsed" class="text-white text-[16px] font-extrabold leading-tight">Доска<br><span class="text-blue-light opacity-70 text-[11px] font-semibold">объявлений</span></span>
+        <div v-if="!collapsed" class="flex flex-col leading-[1.18]">
+          <span class="text-[14.5px] font-bold text-[var(--sidebar-text-strong)]">Доска</span>
+          <span class="text-[11px] text-[var(--sidebar-muted)]">объявлений</span>
+        </div>
       </div>
 
       <!-- Nav -->
-      <nav class="flex-1 overflow-y-auto py-3 space-y-1">
-        <template v-for="section in sections" :key="section.title">
-          <div v-if="!collapsed" class="px-4 pt-4 pb-1 text-[10px] font-black uppercase tracking-[.12em] text-white/25">
-            {{ section.title }}
-          </div>
+      <nav class="flex-1 overflow-y-auto overflow-x-hidden">
+        <template v-for="(section, si) in sections" :key="section.title">
+          <div
+            v-if="!collapsed"
+            class="text-[10.5px] font-bold uppercase tracking-[.07em] text-[var(--section-label)] px-2.5"
+            :style="{ padding: (si === 0 ? '8px' : '16px') + ' 10px 6px' }"
+          >{{ section.title }}</div>
 
-          <template v-for="item in section.items" :key="item.routeName || item.label">
-            <!-- External link (Horizon) -->
-            <a
-              v-if="item.external"
-              :href="item.href"
-              target="_blank"
-              rel="noopener"
-              class="flex items-center gap-3 mx-2 px-3 py-2.5 rounded-[10px] transition-all duration-150 text-white/60 hover:bg-white/8 hover:text-white"
-            >
-              <span class="flex-shrink-0 w-5 h-5">
-                <svg v-if="item.icon === 'horizon'" fill="none" stroke="currentColor" viewBox="0 0 24 24" class="w-5 h-5"><circle cx="12" cy="12" r="3" stroke-width="2"/><path stroke-width="2" stroke-linecap="round" d="M12 2v3M12 19v3M4.22 4.22l2.12 2.12M17.66 17.66l2.12 2.12M2 12h3M19 12h3M4.22 19.78l2.12-2.12M17.66 6.34l2.12-2.12"/></svg>
-              </span>
-              <span v-if="!collapsed" class="flex-1 text-[13px] font-bold truncate">{{ item.label }}</span>
-              <svg v-if="!collapsed" class="h-3 w-3 text-white/30 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-width="2" d="M18 13v6a2 2 0 01-2 2H5a2 2 0 01-2-2V8a2 2 0 012-2h6M15 3h6v6M10 14L21 3"/></svg>
-            </a>
+          <ServiceStatus v-if="section.title === 'МОНИТОРИНГ'" :collapsed="collapsed" />
 
-            <!-- Reverb status (no link, just indicator) -->
-            <div
-              v-else-if="item.statusKey === 'reverb'"
-              class="flex items-center gap-3 mx-2 px-3 py-2.5 rounded-[10px] text-white/60"
-            >
-              <span class="flex-shrink-0 w-5 h-5">
-                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" class="w-5 h-5"><path stroke-width="2" stroke-linecap="round" d="M8.5 19A9 9 0 105 15.5M2 12h.01"/><path stroke-width="2" stroke-linecap="round" d="M6 12a6 6 0 106-6M9 12h.01"/></svg>
-              </span>
-              <div v-if="!collapsed" class="flex-1 min-w-0">
-                <div class="text-[13px] font-bold truncate">{{ item.label }}</div>
-                <div class="flex items-center gap-1 mt-0.5">
-                  <span class="h-1.5 w-1.5 rounded-full bg-green-400 animate-pulse"></span>
-                  <span class="text-[10px] text-green-400 font-semibold">running</span>
-                </div>
-              </div>
-            </div>
-
-            <!-- Normal Inertia link -->
-            <Link
-              v-else
-              :href="route(item.routeName)"
-              class="flex items-center gap-3 mx-2 px-3 py-2.5 rounded-[10px] transition-all duration-150 group"
-              :class="isActive(item.routeName)
-                ? 'bg-blue text-white shadow-[0_4px_12px_rgba(67,97,238,.4)]'
-                : 'text-white/60 hover:bg-white/8 hover:text-white'"
-            >
-              <span class="flex-shrink-0 w-5 h-5">
-                <svg v-if="item.icon === 'grid'" fill="none" stroke="currentColor" viewBox="0 0 24 24" class="w-5 h-5"><rect x="3" y="3" width="7" height="7" stroke-width="2" stroke-linecap="round"/><rect x="14" y="3" width="7" height="7" stroke-width="2" stroke-linecap="round"/><rect x="14" y="14" width="7" height="7" stroke-width="2" stroke-linecap="round"/><rect x="3" y="14" width="7" height="7" stroke-width="2" stroke-linecap="round"/></svg>
-                <svg v-else-if="item.icon === 'users'" fill="none" stroke="currentColor" viewBox="0 0 24 24" class="w-5 h-5"><path stroke-width="2" stroke-linecap="round" d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4" stroke-width="2"/><path stroke-width="2" stroke-linecap="round" d="M23 21v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75"/></svg>
-                <svg v-else-if="item.icon === 'listing'" fill="none" stroke="currentColor" viewBox="0 0 24 24" class="w-5 h-5"><path stroke-width="2" stroke-linecap="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01"/></svg>
-                <svg v-else-if="item.icon === 'video'" fill="none" stroke="currentColor" viewBox="0 0 24 24" class="w-5 h-5"><polygon stroke-width="2" stroke-linecap="round" points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2" ry="2" stroke-width="2"/></svg>
-                <svg v-else-if="item.icon === 'chat'" fill="none" stroke="currentColor" viewBox="0 0 24 24" class="w-5 h-5"><path stroke-width="2" stroke-linecap="round" d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg>
-                <svg v-else-if="item.icon === 'folder'" fill="none" stroke="currentColor" viewBox="0 0 24 24" class="w-5 h-5"><path stroke-width="2" stroke-linecap="round" d="M22 19a2 2 0 01-2 2H4a2 2 0 01-2-2V5a2 2 0 012-2h5l2 3h9a2 2 0 012 2z"/></svg>
-                <svg v-else-if="item.icon === 'map'" fill="none" stroke="currentColor" viewBox="0 0 24 24" class="w-5 h-5"><polygon stroke-width="2" stroke-linecap="round" points="1 6 1 22 8 18 16 22 23 18 23 2 16 6 8 2 1 6"/><line x1="8" y1="2" x2="8" y2="18" stroke-width="2"/><line x1="16" y1="6" x2="16" y2="22" stroke-width="2"/></svg>
-                <svg v-else-if="item.icon === 'news'" fill="none" stroke="currentColor" viewBox="0 0 24 24" class="w-5 h-5"><path stroke-width="2" stroke-linecap="round" d="M4 6h16M4 10h16M4 14h8M4 18h8"/><rect x="2" y="3" width="20" height="18" rx="2" stroke-width="2"/></svg>
-                <svg v-else-if="item.icon === 'flag'" fill="none" stroke="currentColor" viewBox="0 0 24 24" class="w-5 h-5"><path stroke-width="2" stroke-linecap="round" d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z"/><line x1="4" y1="22" x2="4" y2="15" stroke-width="2"/></svg>
-                <svg v-else-if="item.icon === 'star'" fill="none" stroke="currentColor" viewBox="0 0 24 24" class="w-5 h-5"><polygon stroke-width="2" stroke-linecap="round" points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
-                <svg v-else-if="item.icon === 'tag'" fill="none" stroke="currentColor" viewBox="0 0 24 24" class="w-5 h-5"><path stroke-width="2" stroke-linecap="round" d="M20.59 13.41l-7.17 7.17a2 2 0 01-2.83 0L2 12V2h10l8.59 8.59a2 2 0 010 2.82z"/><line x1="7" y1="7" x2="7.01" y2="7" stroke-width="2"/></svg>
-                <svg v-else-if="item.icon === 'chart'" fill="none" stroke="currentColor" viewBox="0 0 24 24" class="w-5 h-5"><line x1="18" y1="20" x2="18" y2="10" stroke-width="2"/><line x1="12" y1="20" x2="12" y2="4" stroke-width="2"/><line x1="6" y1="20" x2="6" y2="14" stroke-width="2"/></svg>
-                <svg v-else-if="item.icon === 'bell'" fill="none" stroke="currentColor" viewBox="0 0 24 24" class="w-5 h-5"><path stroke-width="2" stroke-linecap="round" d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9"/><path stroke-width="2" d="M13.73 21a2 2 0 01-3.46 0"/></svg>
-              </span>
-              <span v-if="!collapsed" class="flex-1 text-[13px] font-bold truncate">{{ item.label }}</span>
-              <span
-                v-if="item.badge && counts[item.badge] > 0 && !collapsed"
-                class="rounded-pill bg-pink px-[6px] py-0.5 text-[10px] font-extrabold text-white"
-              >{{ counts[item.badge] }}</span>
-            </Link>
-          </template>
+          <Link
+            v-for="item in section.items"
+            :key="item.routeName"
+            :href="route(item.routeName)"
+            class="group flex items-center gap-2.5 rounded-lg text-[13.5px] font-medium transition-colors"
+            :class="isActive(item.routeName)
+              ? 'rounded-[9px] bg-[var(--accent-tint)] text-[var(--accent)] font-bold dark:bg-[var(--accent)] dark:text-white dark:font-semibold dark:shadow-[0_0_0_4px_var(--accent-tint),0_8px_18px_-6px_var(--accent)]'
+              : 'text-[var(--sidebar-text)] hover:bg-[var(--nav-hover)]'"
+            :style="{ padding: isActive(item.routeName) ? '9px 10px' : '8px 10px' }"
+          >
+            <Icon :kind="item.icon" :size="17" class="flex-none" />
+            <span v-if="!collapsed" class="flex-1 truncate">{{ item.label }}</span>
+            <span
+              v-if="item.badge && counts[item.badge] > 0 && !collapsed"
+              class="rounded-pill bg-pink px-[5px] py-px text-[9px] font-extrabold text-white"
+            >{{ counts[item.badge] }}</span>
+          </Link>
         </template>
       </nav>
 
       <!-- Collapse toggle -->
-      <button
-        @click="collapsed = !collapsed"
-        class="flex items-center justify-center h-10 border-t border-white/10 text-white/40 hover:text-white transition"
-      >
-        <svg class="h-4 w-4 transition-transform duration-300" :class="collapsed ? 'rotate-180' : ''" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/>
-        </svg>
-      </button>
+      <div class="mt-auto flex justify-end pt-3.5">
+        <button
+          @click="collapsed = !collapsed"
+          class="flex h-7 w-7 items-center justify-center rounded-lg text-[var(--sidebar-muted)] hover:bg-[var(--nav-hover)] transition-colors"
+        >
+          <Icon kind="chevronLeft" :size="15" :class="collapsed ? 'rotate-180' : ''" class="transition-transform duration-300" />
+        </button>
+      </div>
     </aside>
 
     <!-- ── MAIN AREA ─────────────────────────────────────────────────────── -->
-    <div class="flex flex-1 flex-col min-w-0 overflow-hidden">
+    <div class="flex flex-1 flex-col min-w-0 overflow-hidden bg-[var(--content-bg)]">
 
-      <!-- Topbar -->
-      <header class="flex-shrink-0 flex items-center justify-between h-16 px-6 bg-white border-b border-line dark:bg-dcard dark:border-dline shadow-soft">
-        <!-- Page title slot -->
-        <div class="font-extrabold text-[16px] text-ink dark:text-slate-100">
-          <slot name="header" />
+      <!-- Top bar: search + lang/theme/notifications/profile cluster -->
+      <div class="flex h-[68px] flex-none items-center justify-between border-b border-[var(--card-border)] bg-[var(--card-bg)] dark:bg-[#14172A] px-[26px]">
+        <div class="flex w-[280px] items-center gap-2.5 rounded-[9px] border border-[var(--field-border)] bg-[var(--field-bg)] px-3 py-2">
+          <Icon kind="search" :size="16" class="text-[var(--text-muted)]" />
+          <span class="text-[13px] text-[var(--text-muted)]">Поиск по разделу…</span>
         </div>
 
-        <!-- Right controls -->
-        <div class="flex items-center gap-3">
-          <!-- Lang switcher -->
-          <div class="flex items-center gap-1 rounded-pill bg-surface dark:bg-dbg border border-line dark:border-dline px-2 py-1">
-            <button
-              v-for="l in ['ru', 'tk']" :key="l"
-              @click="setLang(l)"
-              class="px-2.5 py-0.5 rounded-pill text-[11px] font-extrabold uppercase transition"
-              :class="locale === l ? 'bg-blue text-white' : 'text-muted hover:text-ink dark:hover:text-slate-200'"
-            >{{ l }}</button>
+        <div class="flex items-center gap-3.5">
+          <!-- Язык -->
+          <div class="flex flex-col items-center gap-1">
+            <div class="flex items-center gap-[2px] rounded-[10px] bg-[var(--field-bg)] dark:bg-white/[.06] p-[3px]">
+              <button
+                v-for="l in ['ru', 'tk']" :key="l"
+                @click="setLang(l)"
+                class="min-w-[38px] rounded-[8px] px-[13px] py-[6.5px] text-[12px] font-bold uppercase tracking-[.02em] transition-colors cursor-pointer"
+                :class="locale === l
+                  ? 'bg-[var(--accent)] text-white shadow-[0_4px_10px_-3px_var(--accent)]'
+                  : 'text-[var(--text-muted)] dark:text-white/[.42] hover:text-[var(--text)]'"
+              >{{ l }}</button>
+            </div>
+            <span class="text-[9.5px] text-[var(--text-muted)] dark:text-white/[.42]">{{ t('topbar.langLabel') }}</span>
           </div>
 
-          <!-- Theme toggle -->
-          <button
-            @click="dark = !dark"
-            class="flex h-8 w-8 items-center justify-center rounded-btn text-muted hover:text-blue hover:bg-blue-light dark:hover:bg-white/10 transition"
-          >
-            <svg v-if="!dark" class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z"/></svg>
-            <svg v-else class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><circle cx="12" cy="12" r="5" stroke-width="2"/><path stroke-linecap="round" stroke-width="2" d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/></svg>
-          </button>
+          <div class="h-[30px] w-px bg-[var(--card-border)]"></div>
 
-          <!-- User menu -->
+          <!-- Тема -->
+          <div class="flex flex-col items-center gap-1">
+            <button
+              @click="dark = !dark"
+              class="flex h-9 w-9 items-center justify-center rounded-[10px] text-[var(--text-secondary)] dark:text-white/[.68] hover:bg-[var(--nav-hover)] dark:hover:bg-white/[.07] transition-colors cursor-pointer"
+            >
+              <Icon :kind="dark ? 'moon' : 'sun'" :size="17" />
+            </button>
+            <span class="text-[9.5px] text-[var(--text-muted)] dark:text-white/[.42]">{{ dark ? t('topbar.lightTheme') : t('topbar.darkTheme') }}</span>
+          </div>
+
+          <div class="h-[30px] w-px bg-[var(--card-border)]"></div>
+
+          <!-- Уведомления -->
+          <div class="flex flex-col items-center gap-1">
+            <div class="relative flex h-9 w-9 items-center justify-center rounded-[10px] text-[var(--text-secondary)] dark:text-white/[.68] hover:bg-[var(--nav-hover)] dark:hover:bg-white/[.07] transition-colors cursor-pointer">
+              <Icon kind="bell" :size="17" />
+              <span
+                v-if="notificationsTotal > 0"
+                class="absolute -right-1 -top-1 flex h-[15px] min-w-[15px] items-center justify-center rounded-lg border-2 border-[var(--card-bg)] dark:border-[#14172A] bg-[#F0554C] px-[3px] text-[9.5px] font-bold text-white"
+              >{{ notificationsTotal }}</span>
+            </div>
+            <span class="text-[9.5px] text-[var(--text-muted)] dark:text-white/[.42]">{{ t('topbar.notifications') }}</span>
+          </div>
+
+          <div class="h-[30px] w-px bg-[var(--card-border)]"></div>
+
+          <!-- Профиль -->
           <div class="relative">
-            <button @click="userMenuOpen = !userMenuOpen" class="flex items-center gap-2 rounded-btn px-2 py-1 hover:bg-surface dark:hover:bg-white/5 transition">
-              <div class="h-8 w-8 rounded-full bg-blue flex items-center justify-center text-[12px] font-extrabold text-white">
-                {{ user?.name?.charAt(0)?.toUpperCase() || 'A' }}
+            <button
+              @click="userMenuOpen = !userMenuOpen"
+              class="flex items-center gap-2.5 rounded-[11px] px-2 py-1.5 hover:bg-[var(--nav-hover)] dark:hover:bg-white/[.07] transition-colors cursor-pointer"
+            >
+              <div class="relative h-9 w-9 flex-none">
+                <div class="flex h-9 w-9 items-center justify-center rounded-full bg-[var(--accent-tint)] dark:bg-[rgba(109,99,242,.18)] text-[12.5px] font-bold text-[var(--accent)]">
+                  {{ initials }}
+                </div>
+                <span class="absolute -bottom-0.5 -right-0.5 h-[10px] w-[10px] rounded-full bg-[#4ADE80] border-2 border-[var(--card-bg)] dark:border-[#14172A]"></span>
               </div>
-              <div v-if="false" class="text-left hidden sm:block">
-                <div class="text-[13px] font-bold text-ink dark:text-slate-100">{{ user?.name }}</div>
-                <div class="text-[11px] text-muted">{{ user?.phone }}</div>
+              <div class="hidden flex-col items-start leading-[1.25] sm:flex">
+                <span class="text-[13px] font-bold text-[var(--text)] dark:text-[#F5F5FA]">{{ user?.name }}</span>
+                <span class="text-[10.5px] text-[var(--text-muted)] dark:text-white/[.42]">{{ roleLabel }}</span>
               </div>
-              <svg class="h-3.5 w-3.5 text-muted" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+              <Icon kind="chevronDown" :size="14" class="text-[var(--text-muted)] dark:text-white/[.42]" />
             </button>
 
             <Transition name="menu">
               <div
                 v-if="userMenuOpen"
-                @click.outside="userMenuOpen = false"
                 v-click-outside="() => userMenuOpen = false"
-                class="absolute right-0 top-full mt-2 w-48 rounded-card bg-white shadow-lg2 border border-line dark:bg-dcard dark:border-dline z-50 overflow-hidden"
+                class="absolute right-0 top-full mt-2 w-48 rounded-2xl bg-[var(--card-bg)] shadow-[var(--card-shadow)] border border-[var(--card-border)] z-50 overflow-hidden"
               >
-                <div class="px-4 py-3 border-b border-line dark:border-dline">
-                  <div class="text-[13px] font-bold text-ink dark:text-slate-100">{{ user?.name }}</div>
-                  <div class="text-[11px] text-muted">{{ user?.phone }}</div>
+                <div class="px-4 py-3 border-b border-[var(--card-border)]">
+                  <div class="text-[13px] font-bold text-[var(--text)]">{{ user?.name }}</div>
+                  <div class="text-[11px] text-[var(--text-muted)]">{{ user?.phone }}</div>
                 </div>
                 <button
                   @click="logout"
@@ -241,10 +239,19 @@ function logout() {
             </Transition>
           </div>
         </div>
-      </header>
+      </div>
+
+      <!-- Page header row -->
+      <div class="flex flex-none items-center justify-between px-8 pb-2 pt-[26px]">
+        <div>
+          <div v-if="eyebrow" class="mb-1 text-[11.5px] text-[var(--text-muted)]">{{ eyebrow }}</div>
+          <div class="text-[22px] font-extrabold text-[var(--text)]"><slot name="header" /></div>
+        </div>
+        <div><slot name="actions" /></div>
+      </div>
 
       <!-- Page content -->
-      <main class="flex-1 overflow-y-auto p-6">
+      <main class="flex-1 overflow-y-auto px-8 pb-8 pt-2">
         <slot />
       </main>
     </div>
