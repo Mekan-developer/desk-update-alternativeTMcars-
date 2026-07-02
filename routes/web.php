@@ -15,6 +15,7 @@ use App\Http\Controllers\Admin\ReviewController;
 use App\Http\Controllers\Admin\StatisticsController;
 use App\Http\Controllers\Admin\TariffController;
 use App\Http\Controllers\Admin\UserController;
+use App\Http\Controllers\Admin\StatusController;
 use App\Http\Controllers\Admin\VideoController;
 use Illuminate\Support\Facades\Route;
 
@@ -77,6 +78,9 @@ Route::middleware(['auth', 'role:admin,manager'])->group(function () {
 
     // Statistics
     Route::get('statistics', [StatisticsController::class, 'index'])->name('statistics.index');
+
+    // Service status (Horizon + Reverb health check)
+    Route::get('status', StatusController::class)->name('status');
 
     // Push — admin only
     Route::middleware('role:admin')->group(function () {
