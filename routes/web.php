@@ -6,6 +6,7 @@ use App\Http\Controllers\Admin\CityController;
 use App\Http\Controllers\Admin\ComplaintController;
 use App\Http\Controllers\Admin\ComplaintReasonController;
 use App\Http\Controllers\Admin\DashboardController;
+use App\Http\Controllers\Admin\DistrictController;
 use App\Http\Controllers\Admin\ListingController;
 use App\Http\Controllers\Admin\NewsController;
 use App\Http\Controllers\Admin\PushController;
@@ -54,9 +55,17 @@ Route::middleware(['auth', 'role:admin,manager'])->group(function () {
     Route::patch('categories/{category}/toggle',  [CategoryController::class, 'toggle'])->name('categories.toggle');
     Route::patch('categories/reorder',            [CategoryController::class, 'reorder'])->name('categories.reorder');
 
-    // Regions & Cities
+    // Regions & Cities & Districts (Регион → Город → Район)
     Route::resource('regions', RegionController::class)->except('create', 'edit', 'show');
+    Route::patch('regions/{region}/toggle', [RegionController::class, 'toggle'])->name('regions.toggle');
+
     Route::resource('cities',  CityController::class)->except('create', 'edit', 'show');
+    Route::patch('cities/{city}/toggle', [CityController::class, 'toggle'])->name('cities.toggle');
+
+    Route::post('cities/{city}/districts',       [DistrictController::class, 'store'])->name('districts.store');
+    Route::put('districts/{district}',           [DistrictController::class, 'update'])->name('districts.update');
+    Route::patch('districts/{district}/toggle',  [DistrictController::class, 'toggle'])->name('districts.toggle');
+    Route::delete('districts/{district}',        [DistrictController::class, 'destroy'])->name('districts.destroy');
 
     // Tariffs
     Route::resource('tariffs', TariffController::class)->except('create', 'edit', 'show');

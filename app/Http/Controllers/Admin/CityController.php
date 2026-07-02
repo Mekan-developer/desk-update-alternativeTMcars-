@@ -32,6 +32,19 @@ class CityController extends Controller
         return back()->with('toast', ['type' => 'success', 'message' => 'Обновлено']);
     }
 
+    public function toggle(City $city)
+    {
+        $hide = ! $city->is_hidden;
+        $city->update(['is_hidden' => $hide]);
+
+        // Скрытие города каскадно скрывает его районы.
+        if ($hide) {
+            $city->districts()->update(['is_hidden' => true]);
+        }
+
+        return back()->with('toast', ['type' => 'success', 'message' => 'Обновлено']);
+    }
+
     public function destroy(Request $request, City $city)
     {
         if (! $request->user()->isAdmin()) {
