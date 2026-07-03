@@ -25,10 +25,17 @@ class NewsController extends Controller
 
     public function store(StoreNewsRequest $request)
     {
+        $data = $request->safe()->except('image', 'crop_x', 'crop_y', 'remove_image');
+        // Очищаем рекламные поля если тип regular
+        if ($data['type'] === 'regular') {
+            $data['ad_link_type'] = null;
+            $data['ad_link_id'] = null;
+        }
         $this->newsService->store(
-            $request->safe()->except('image'),
+            $data,
             $request->user(),
             $request->file('image'),
+            $request->safe()->only('crop_x', 'crop_y'),
         );
 
         return back()->with('toast', ['type' => 'success', 'message' => __('messages.created')]);
@@ -36,10 +43,18 @@ class NewsController extends Controller
 
     public function update(StoreNewsRequest $request, News $news)
     {
+        $data = $request->safe()->except('image', 'crop_x', 'crop_y', 'remove_image');
+        // Очищаем рекламные поля если тип regular
+        if ($data['type'] === 'regular') {
+            $data['ad_link_type'] = null;
+            $data['ad_link_id'] = null;
+        }
         $this->newsService->update(
             $news,
-            $request->safe()->except('image'),
+            $data,
             $request->file('image'),
+            $request->safe()->only('crop_x', 'crop_y'),
+            $request->boolean('remove_image'),
         );
 
         return back()->with('toast', ['type' => 'success', 'message' => __('messages.updated')]);

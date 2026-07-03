@@ -60,6 +60,22 @@ body { font-family: 'Nunito', sans-serif; }
     --status-glow: 0 0 6px currentColor;
 }
 
+/* Form fields (drawer-формы: News, Tariffs, Reviews, Statistics) */
+@layer components {
+    .input {
+        @apply w-full box-border rounded-[10px] px-[13px] py-[10px] text-sm outline-none transition-shadow;
+        background: var(--field-bg);
+        border: 1px solid var(--field-border);
+        color: var(--text);
+    }
+    .input:focus {
+        border-color: var(--accent);
+        box-shadow: 0 0 0 3px var(--accent-tint);
+        --tw-ring-shadow: 0 0 #0000; /* глушим ring от @tailwindcss/forms */
+    }
+    .input::placeholder { color: var(--text-muted); }
+}
+
 /* Toggle switch */
 .tog { @apply relative w-[44px] h-6 cursor-pointer; }
 .tog input { @apply opacity-0 w-0 h-0 absolute; }
