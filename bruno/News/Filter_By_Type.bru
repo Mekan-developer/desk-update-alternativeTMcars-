@@ -1,0 +1,29 @@
+meta {
+  name: Фильтр по типу (regular, ad)
+  type: http
+  seq: 3
+}
+
+get {
+  url: {{base_url}}/v1/news
+  body: none
+}
+
+params:query {
+  type: ad
+  page: 1
+  limit: 20
+}
+
+headers {
+  Accept: application/json
+}
+
+tests {
+  test("returns only ads", function() {
+    const body = res.getBody();
+    body.data.forEach(news => {
+      expect(news.type).to.equal('ad');
+    });
+  });
+}

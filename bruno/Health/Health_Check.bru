@@ -1,0 +1,22 @@
+meta {
+  name: Health Check
+  type: http
+  seq: 1
+}
+
+get {
+  url: {{base_url}}/health
+  body: none
+}
+
+headers {
+  Accept: application/json
+}
+
+tests {
+  test("API is healthy", function() {
+    expect(res.getStatus()).to.equal(200);
+    expect(res.getBody()).to.have.property('status');
+    expect(res.getBody().status).to.equal('ok');
+  });
+}

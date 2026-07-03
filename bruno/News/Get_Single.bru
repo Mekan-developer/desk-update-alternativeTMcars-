@@ -1,0 +1,27 @@
+meta {
+  name: Получить одну новость
+  type: http
+  seq: 2
+}
+
+get {
+  url: {{base_url}}/v1/news/1
+  body: none
+}
+
+headers {
+  Accept: application/json
+}
+
+tests {
+  test("status is 200", function() {
+    expect(res.getStatus()).to.equal(200);
+  });
+
+  test("has news data", function() {
+    const body = res.getBody();
+    expect(body).to.have.property('data');
+    expect(body.data).to.have.property('id');
+    expect(body.data).to.have.property('title_ru');
+  });
+}

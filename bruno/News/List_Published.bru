@@ -1,0 +1,31 @@
+meta {
+  name: Получить опубликованные новости
+  type: http
+  seq: 1
+}
+
+get {
+  url: {{base_url}}/v1/news
+  body: none
+}
+
+params:query {
+  type:
+  page: 1
+  limit: 20
+}
+
+headers {
+  Accept: application/json
+  Content-Type: application/json
+}
+
+tests {
+  test("status is 200", function() {
+    expect(res.getStatus()).to.equal(200);
+  });
+
+  test("response has data array", function() {
+    expect(res.getBody()).to.have.property('data');
+  });
+}
