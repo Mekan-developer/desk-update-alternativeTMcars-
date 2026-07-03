@@ -3,83 +3,62 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Admin\StoreCategoryRequest;
 use App\Models\Category;
+use App\Services\CategoryService;
 use Illuminate\Http\Request;
-use Illuminate\Support\Str;
 use Inertia\Inertia;
 
 class CategoryController extends Controller
 {
+    public function __construct(
+        private readonly CategoryService $categoryService,
+    ) {}
+
     public function index()
     {
-        $categories = Category::with('children.children')
-            ->whereNull('parent_id')
-            ->orderBy('order')
-            ->get();
-
         return Inertia::render('Categories/Index', [
-            'categories' => $categories,
+            'categories' => $this->categoryService->tree(),
+            'icons'      => $this->categoryService->iconLibrary(),
         ]);
     }
 
-    public function store(Request $request)
+    public function store(StoreCategoryRequest $request)
     {
-        $data = $request->validate([
-            'name_ru'   => 'required|string|max:255',
-            'name_tk'   => 'required|string|max:255',
-            'parent_id' => 'nullable|exists:categories,id',
-            'order'     => 'integer|min:0',
-            'is_active' => 'boolean',
-        ]);
+        $data = $request->safe()->except('icon');
+        $this->categoryService->create($data, $request->file('icon'));
 
-        $data['slug'] = Str::slug($data['name_ru'] . '-' . uniqid());
-        $data['level'] = $data['parent_id']
-            ? (Category::find($data['parent_id'])?->level ?? 0) + 1
-            : 1;
-
-        Category::create($data);
-
-        return back()->with('toast', ['type' => 'success', 'message' => 'Категория добавлена']);
+        return back()->with('toast', ['type' => 'success', 'message' => __('messages.created')]);
     }
 
-    public function update(Request $request, Category $category)
+    public function update(StoreCategoryRequest $request, Category $category)
     {
-        $data = $request->validate([
-            'name_ru'   => 'sometimes|string|max:255',
-            'name_tk'   => 'sometimes|string|max:255',
-            'parent_id' => 'nullable|exists:categories,id',
-            'order'     => 'integer|min:0',
-            'is_active' => 'boolean',
-        ]);
+        $data = $request->safe()->except('icon');
+        $this->categoryService->update($category, $data, $request->file('icon'));
 
-        $category->update($data);
-
-        return back()->with('toast', ['type' => 'success', 'message' => 'Категория обновлена']);
+        return back()->with('toast', ['type' => 'success', 'message' => __('messages.updated')]);
     }
 
     public function destroy(Request $request, Category $category)
     {
-        if (! $request->user()->isAdmin()) {
-            abort(403);
-        }
+        abort_unless($request->user()->isAdmin(), 403);
 
-        $category->delete();
+        $this->categoryService->delete($category);
 
-        return back()->with('toast', ['type' => 'success', 'message' => 'Категория удалена']);
+        return back()->with('toast', ['type' => 'success', 'message' => __('messages.deleted')]);
     }
 
     public function toggle(Category $category)
     {
-        $category->update(['is_active' => ! $category->is_active]);
+        $this->categoryService->toggleActive($category);
 
-        return back()->with('toast', ['type' => 'success', 'message' => 'Обновлено']);
+        return back()->with('toast', ['type' => 'success', 'message' => __('messages.updated')]);
     }
 
-    public function reorder(Request $request)
+    public function move(Request $request, Category $category)
     {
-        foreach ($request->items as $item) {
-            Category::where('id', $item['id'])->update(['order' => $item['order']]);
-        }
+        $request->validate(['direction' => 'required|in:up,down']);
+        $this->categoryService->move($category, $request->input('direction'));
 
         return back();
     }

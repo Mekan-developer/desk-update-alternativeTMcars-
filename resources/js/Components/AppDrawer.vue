@@ -16,7 +16,7 @@ defineEmits(['close'])
 
         <!-- Panel -->
         <div
-          class="relative flex flex-col bg-white shadow-[0_0_60px_rgba(0,0,0,.2)] dark:bg-dcard overflow-hidden"
+          class="relative flex flex-col bg-white shadow-[0_0_60px_rgba(0,0,0,.2)] dark:bg-dcard overflow-hidden font-golos"
           :style="{ width }"
         >
           <!-- Header -->

@@ -4,9 +4,11 @@ namespace App\Providers;
 
 use App\Models\Listing;
 use App\Observers\ListingObserver;
+use App\Repositories\CategoryIconRepository;
 use App\Repositories\CategoryRepository;
 use App\Repositories\ChatRepository;
 use App\Repositories\ComplaintRepository;
+use App\Repositories\Interfaces\CategoryIconRepositoryInterface;
 use App\Repositories\Interfaces\CategoryRepositoryInterface;
 use App\Repositories\Interfaces\ChatRepositoryInterface;
 use App\Repositories\Interfaces\ComplaintRepositoryInterface;
@@ -33,6 +35,7 @@ class AppServiceProvider extends ServiceProvider
         $this->app->bind(UserRepositoryInterface::class, UserRepository::class);
         $this->app->bind(VideoRepositoryInterface::class, VideoRepository::class);
         $this->app->bind(CategoryRepositoryInterface::class, CategoryRepository::class);
+        $this->app->bind(CategoryIconRepositoryInterface::class, CategoryIconRepository::class);
         $this->app->bind(TariffRepositoryInterface::class, TariffRepository::class);
         $this->app->bind(ChatRepositoryInterface::class, ChatRepository::class);
         $this->app->bind(NewsRepositoryInterface::class, NewsRepository::class);

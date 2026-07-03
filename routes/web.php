@@ -52,8 +52,8 @@ Route::middleware(['auth', 'role:admin,manager'])->group(function () {
 
     // Categories
     Route::resource('categories', CategoryController::class)->except('create', 'edit', 'show');
-    Route::patch('categories/{category}/toggle',  [CategoryController::class, 'toggle'])->name('categories.toggle');
-    Route::patch('categories/reorder',            [CategoryController::class, 'reorder'])->name('categories.reorder');
+    Route::patch('categories/{category}/toggle', [CategoryController::class, 'toggle'])->name('categories.toggle');
+    Route::patch('categories/{category}/move',   [CategoryController::class, 'move'])->name('categories.move');
 
     // Regions & Cities & Districts (Регион → Город → Район)
     Route::resource('regions', RegionController::class)->except('create', 'edit', 'show');

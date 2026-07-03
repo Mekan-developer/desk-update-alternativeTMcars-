@@ -21,6 +21,10 @@ return [
     'review_approved' => 'Syn tassyklandy',
     'review_rejected' => 'Syn ret edildi',
 
+    'category_max_level' => '3 derejeden çuňňur kategoriýa döredip bolmaz',
+    'category_parent_invalid' => 'Kategoriýa öz-özüne ýa-da öz nesline eýe bolup bilmez',
+    'category_has_listings' => 'Öçürip bolmaz — kategoriýa (ýa-da onuň kiçi kategoriýalary) bildirişlerde ulanylýar',
+
     'user_blocked'   => 'Ulanyjy petiklendi',
     'user_unblocked' => 'Ulanyjy petiklemeden çykaryldy',
 

@@ -5,15 +5,128 @@ import AppLayout from '@/Layouts/AppLayout.vue'
 import AppDrawer from '@/Components/AppDrawer.vue'
 import DrawerField from '@/Components/DrawerField.vue'
 import ToggleSwitch from '@/Components/ToggleSwitch.vue'
+import IconPicker from '@/Components/IconPicker.vue'
+import Icon from '@/Components/Icon.vue'
 
-const props = defineProps({ categories: Array })
+const props = defineProps({ categories: Array, icons: Array })
 
-// Flatten tree to show indented list
+const levelBadge = {
+    1: 'bg-blue-light text-blue',
+    2: 'bg-green/10 text-green',
+    3: 'bg-orange/10 text-orange',
+}
+
+// Свёрнутые ветки (по умолчанию всё раскрыто)
+const collapsed = ref(new Set())
+function toggleCollapse(id) {
+    const next = new Set(collapsed.value)
+    next.has(id) ? next.delete(id) : next.add(id)
+    collapsed.value = next
+}
+
+// Плоский список с учётом сворачивания веток
 const flatList = computed(() => {
     const result = []
     function walk(items, depth) {
         for (const item of items) {
             result.push({ ...item, depth })
+            if (item.children?.length && !collapsed.value.has(item.id)) {
+                walk(item.children, depth + 1)
+            }
+        }
+    }
+    walk(props.categories, 0)
+    return result
+})
+
+// Первый/последний среди siblings — для отключения стрелок сортировки
+const siblingInfo = computed(() => {
+    const map = {}
+    function walk(items) {
+        items.forEach((item, idx) => {
+            map[item.id] = { isFirst: idx === 0, isLast: idx === items.length - 1 }
+            if (item.children?.length) walk(item.children)
+        })
+    }
+    walk(props.categories)
+    return map
+})
+
+// Drawer state
+const drawerOpen = ref(false)
+const editItem   = ref(null)
+const emptyForm  = () => ({ name_ru: '', name_tk: '', parent_id: '', is_active: true, icon_path: null, icon: null })
+const form       = ref(emptyForm())
+const errors     = ref({})
+
+function openCreate(parent = null) {
+    editItem.value = null
+    form.value = { ...emptyForm(), parent_id: parent?.id ?? '' }
+    errors.value = {}
+    drawerOpen.value = true
+}
+
+function openEdit(cat) {
+    editItem.value = cat
+    form.value = {
+        name_ru: cat.name_ru,
+        name_tk: cat.name_tk ?? '',
+        parent_id: cat.parent_id ?? '',
+        is_active: cat.is_active,
+        icon_path: cat.icon_path ?? null,
+        icon: null,
+    }
+    errors.value = {}
+    drawerOpen.value = true
+}
+
+function save() {
+    const url  = editItem.value ? route('categories.update', editItem.value.id) : route('categories.store')
+    const data = editItem.value ? { ...form.value, _method: 'put' } : form.value
+    router.post(url, data, {
+        forceFormData: !!form.value.icon,
+        onSuccess: () => { drawerOpen.value = false },
+        onError: e => { errors.value = e },
+    })
+}
+
+function destroy(cat) {
+    const message = cat.children?.length
+        ? `Удалить «${cat.name_ru}» вместе со всеми подкатегориями?`
+        : `Удалить «${cat.name_ru}»?`
+    if (confirm(message)) {
+        router.delete(route('categories.destroy', cat.id))
+    }
+}
+
+function toggleActive(cat) {
+    router.patch(route('categories.toggle', cat.id))
+}
+
+function move(cat, direction) {
+    router.patch(route('categories.move', cat.id), { direction })
+}
+
+// Родитель может быть только уровня 1 или 2, и не сам редактируемый узел / его потомок
+function collectDescendantIds(item, acc) {
+    for (const child of item.children || []) {
+        acc.add(child.id)
+        collectDescendantIds(child, acc)
+    }
+}
+const excludedParentIds = computed(() => {
+    if (!editItem.value) return new Set()
+    const acc = new Set([editItem.value.id])
+    collectDescendantIds(editItem.value, acc)
+    return acc
+})
+const parentOptions = computed(() => {
+    const result = []
+    function walk(items, depth) {
+        for (const item of items) {
+            if (item.level < 3 && !excludedParentIds.value.has(item.id)) {
+                result.push({ ...item, depth })
+            }
             if (item.children?.length) walk(item.children, depth + 1)
         }
     }
@@ -21,59 +134,22 @@ const flatList = computed(() => {
     return result
 })
 
-// Drawer state
-const drawerOpen = ref(false)
-const editItem   = ref(null)
-const form       = ref({ name_ru: '', name_tk: '', parent_id: '', icon: '', is_active: true })
-const errors     = ref({})
-
-function openCreate(parent = null) {
-    editItem.value = null
-    form.value = { name_ru: '', name_tk: '', parent_id: parent?.id || '', icon: '', is_active: true }
-    errors.value = {}
-    drawerOpen.value = true
-}
-
-function openEdit(cat) {
-    editItem.value = cat
-    form.value = { name_ru: cat.name_ru, name_tk: cat.name_tk, parent_id: cat.parent_id || '', icon: cat.icon || '', is_active: cat.is_active }
-    errors.value = {}
-    drawerOpen.value = true
-}
-
-function save() {
-    const url  = editItem.value ? route('categories.update', editItem.value.id) : route('categories.store')
-    const method = editItem.value ? 'put' : 'post'
-    router[method](url, form.value, {
-        onSuccess: () => { drawerOpen.value = false },
-        onError: e => { errors.value = e },
-    })
-}
-
-function destroy(cat) {
-    if (confirm(`Удалить «${cat.name_ru}»?`)) {
-        router.delete(route('categories.destroy', cat.id))
-    }
-}
-
-// Parent options (only level 1 and 2 can be parents)
-const parentOptions = computed(() => flatList.value.filter(c => c.level < 3))
+const canSave = computed(() => form.value.name_ru.trim().length > 0)
 </script>
 
 <template>
   <AppLayout>
-    <template #header>
-      <div class="flex items-center justify-between w-full">
-        <span>Категории</span>
-        <button @click="openCreate()" class="rounded-btn bg-blue px-4 py-2 text-[13px] font-bold text-white hover:opacity-90 transition">+ Добавить</button>
-      </div>
+    <template #header>Категории</template>
+
+    <template #actions>
+      <button @click="openCreate()" class="rounded-btn bg-blue px-4 py-2 text-[13px] font-bold text-white hover:opacity-90 transition">+ Добавить категорию</button>
     </template>
 
     <div class="rounded-card bg-white shadow-soft dark:bg-dcard overflow-hidden">
       <table class="w-full">
         <thead class="bg-surface/50 dark:bg-dbg/50">
           <tr>
-            <th class="px-4 py-[11px] text-left text-[11px] font-bold uppercase tracking-[.07em] text-muted border-b-2 border-line dark:border-dline w-10">#</th>
+            <th class="px-4 py-[11px] text-left text-[11px] font-bold uppercase tracking-[.07em] text-muted border-b-2 border-line dark:border-dline w-16">#</th>
             <th class="px-4 py-[11px] text-left text-[11px] font-bold uppercase tracking-[.07em] text-muted border-b-2 border-line dark:border-dline">Название</th>
             <th class="px-4 py-[11px] text-left text-[11px] font-bold uppercase tracking-[.07em] text-muted border-b-2 border-line dark:border-dline">Туркменский</th>
             <th class="px-4 py-[11px] text-left text-[11px] font-bold uppercase tracking-[.07em] text-muted border-b-2 border-line dark:border-dline w-20">Уровень</th>
@@ -83,22 +159,46 @@ const parentOptions = computed(() => flatList.value.filter(c => c.level < 3))
         </thead>
         <tbody>
           <tr v-for="cat in flatList" :key="cat.id" class="hover:bg-surface/30 dark:hover:bg-white/3 transition">
-            <td class="px-4 py-[12px] text-[12px] border-b border-line dark:border-dline font-data text-muted">{{ cat.id }}</td>
+            <td class="px-4 py-[12px] text-[12px] border-b border-line dark:border-dline font-data text-muted">
+              <div class="flex items-center gap-1">
+                <span>{{ cat.id }}</span>
+                <div class="flex flex-col -my-1">
+                  <button
+                    @click="move(cat, 'up')" :disabled="siblingInfo[cat.id]?.isFirst"
+                    class="flex h-[13px] w-[13px] items-center justify-center text-muted transition hover:text-blue disabled:opacity-25 disabled:hover:text-muted"
+                  ><Icon kind="arrowUp" :size="10" /></button>
+                  <button
+                    @click="move(cat, 'down')" :disabled="siblingInfo[cat.id]?.isLast"
+                    class="flex h-[13px] w-[13px] items-center justify-center text-muted transition hover:text-blue disabled:opacity-25 disabled:hover:text-muted"
+                  ><Icon kind="arrowDown" :size="10" /></button>
+                </div>
+              </div>
+            </td>
             <td class="px-4 py-[12px] text-[13px] border-b border-line dark:border-dline">
               <div class="flex items-center" :style="{ paddingLeft: cat.depth * 20 + 'px' }">
-                <svg v-if="cat.depth > 0" class="h-3 w-3 text-muted mr-1.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-width="2" stroke-linecap="round" d="M9 18l-4-6 4-6"/>
-                </svg>
-                <span v-if="cat.icon" class="mr-2 text-base">{{ cat.icon }}</span>
+                <button
+                  v-if="cat.children?.length"
+                  @click="toggleCollapse(cat.id)"
+                  class="mr-1 flex h-4 w-4 flex-shrink-0 items-center justify-center text-muted transition hover:text-blue"
+                  :class="{ '-rotate-90': collapsed.has(cat.id) }"
+                >
+                  <Icon kind="chevronDown" :size="12" />
+                </button>
+                <span v-else class="mr-1 w-4 flex-shrink-0"></span>
+
+                <div class="mr-2 flex h-7 w-7 flex-shrink-0 items-center justify-center rounded-[7px] bg-surface dark:bg-dbg overflow-hidden">
+                  <img v-if="cat.icon_url" :src="cat.icon_url" class="h-4 w-4 object-contain" alt="" />
+                  <Icon v-else kind="image" :size="12" class="text-muted" />
+                </div>
+
                 <span class="font-bold text-ink dark:text-slate-200">{{ cat.name_ru }}</span>
-                <span v-if="cat.children?.length" class="ml-2 text-[10px] font-data font-bold text-muted">({{ cat.children_count || 0 }})</span>
+                <span v-if="cat.children?.length" class="ml-2 text-[10px] font-data font-bold text-muted">({{ cat.children.length }})</span>
               </div>
             </td>
             <td class="px-4 py-[12px] text-[13px] border-b border-line dark:border-dline text-muted">{{ cat.name_tk }}</td>
             <td class="px-4 py-[12px] text-[12px] border-b border-line dark:border-dline">
-              <span class="rounded-pill px-2.5 py-0.5 text-[11px] font-bold"
-                :class="cat.depth === 0 ? 'bg-blue-light text-blue' : cat.depth === 1 ? 'bg-green/10 text-green' : 'bg-orange/10 text-orange'">
-                L{{ cat.depth + 1 }}
+              <span class="rounded-pill px-2.5 py-0.5 text-[11px] font-bold" :class="levelBadge[cat.level]">
+                L{{ cat.level }}
               </span>
             </td>
             <td class="px-4 py-[12px] text-[13px] border-b border-line dark:border-dline">
@@ -106,17 +206,21 @@ const parentOptions = computed(() => flatList.value.filter(c => c.level < 3))
             </td>
             <td class="px-4 py-[12px] text-[13px] border-b border-line dark:border-dline">
               <div class="flex items-center justify-end gap-1.5">
-                <button v-if="cat.depth < 2" @click="openCreate(cat)" title="Добавить подкатегорию"
-                  class="flex h-[28px] w-[28px] items-center justify-center rounded-[7px] bg-blue-light text-blue transition hover:bg-blue hover:text-white">
-                  <svg class="h-3 w-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19" stroke-width="2.5" stroke-linecap="round"/><line x1="5" y1="12" x2="19" y2="12" stroke-width="2.5" stroke-linecap="round"/></svg>
-                </button>
-                <button @click="openEdit(cat)"
+                <button @click="toggleActive(cat)" :title="cat.is_active ? 'Скрыть' : 'Показать'"
                   class="flex h-[28px] w-[28px] items-center justify-center rounded-[7px] bg-surface text-muted transition hover:bg-blue hover:text-white dark:bg-dbg">
-                  <svg class="h-3 w-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
+                  <Icon :kind="cat.is_active ? 'eye' : 'eyeOff'" :size="13" />
                 </button>
-                <button @click="destroy(cat)"
+                <button v-if="cat.level < 3" @click="openCreate(cat)" title="Добавить подкатегорию"
+                  class="flex h-[28px] w-[28px] items-center justify-center rounded-[7px] bg-blue-light text-blue transition hover:bg-blue hover:text-white">
+                  <Icon kind="plus" :size="13" />
+                </button>
+                <button @click="openEdit(cat)" title="Редактировать"
+                  class="flex h-[28px] w-[28px] items-center justify-center rounded-[7px] bg-surface text-muted transition hover:bg-blue hover:text-white dark:bg-dbg">
+                  <Icon kind="pencil" :size="13" />
+                </button>
+                <button @click="destroy(cat)" title="Удалить"
                   class="flex h-[28px] w-[28px] items-center justify-center rounded-[7px] bg-red/10 text-red transition hover:bg-red hover:text-white">
-                  <svg class="h-3 w-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><polyline stroke-width="2" stroke-linecap="round" points="3 6 5 6 21 6"/><path stroke-width="2" stroke-linecap="round" d="M19 6l-1 14H6L5 6M10 11v6M14 11v6"/></svg>
+                  <Icon kind="trash" :size="13" />
                 </button>
               </div>
             </td>
@@ -131,28 +235,33 @@ const parentOptions = computed(() => flatList.value.filter(c => c.level < 3))
         <DrawerField label="Родительская категория">
           <select v-model="form.parent_id" class="w-full rounded-btn border-2 border-line bg-surface py-[9px] px-[14px] text-[13px] font-semibold text-ink outline-none focus:border-blue dark:bg-dbg dark:border-dline dark:text-slate-200">
             <option value="">— Корневая категория —</option>
-            <option v-for="p in parentOptions" :key="p.id" :value="p.id"
-              :style="{ paddingLeft: p.depth * 16 + 'px' }">
-              {{ '  '.repeat(p.depth) }}{{ p.name_ru }}
+            <option v-for="p in parentOptions" :key="p.id" :value="p.id">
+              {{ '— '.repeat(p.depth) }}{{ p.name_ru }}
             </option>
           </select>
         </DrawerField>
-        <DrawerField label="Название (рус)" :error="errors.name_ru">
+        <DrawerField label="Название (рус)" required :error="errors.name_ru">
           <input v-model="form.name_ru" class="w-full rounded-btn border-2 border-line bg-surface py-[9px] px-[14px] text-[13px] font-semibold text-ink outline-none focus:border-blue dark:bg-dbg dark:border-dline dark:text-slate-200" :class="errors.name_ru ? 'border-red' : ''" />
         </DrawerField>
         <DrawerField label="Название (тур)" :error="errors.name_tk">
           <input v-model="form.name_tk" class="w-full rounded-btn border-2 border-line bg-surface py-[9px] px-[14px] text-[13px] font-semibold text-ink outline-none focus:border-blue dark:bg-dbg dark:border-dline dark:text-slate-200" :class="errors.name_tk ? 'border-red' : ''" />
         </DrawerField>
-        <DrawerField label="Иконка (эмодзи)">
-          <input v-model="form.icon" class="w-full rounded-btn border-2 border-line bg-surface py-[9px] px-[14px] text-[13px] font-semibold text-ink outline-none focus:border-blue dark:bg-dbg dark:border-dline dark:text-slate-200" placeholder="🏠" />
+        <DrawerField label="Иконка" :error="errors.icon || errors.icon_path">
+          <IconPicker
+            v-model:icon-path="form.icon_path"
+            v-model:icon-file="form.icon"
+            :library="icons"
+            :existing-url="editItem?.icon_url"
+          />
         </DrawerField>
         <DrawerField label="Активна">
           <ToggleSwitch v-model="form.is_active" />
+          <p class="mt-1.5 text-[11px] text-muted">Скрытые категории не показываются в приложении</p>
         </DrawerField>
       </div>
       <template #footer>
         <button @click="drawerOpen = false" class="flex-1 rounded-btn border-2 border-line py-[10px] text-[13px] font-bold text-muted hover:border-blue hover:text-blue transition dark:border-dline">Отмена</button>
-        <button @click="save" class="flex-1 rounded-btn bg-blue py-[10px] text-[13px] font-bold text-white hover:opacity-90 transition">{{ editItem ? 'Сохранить' : 'Создать' }}</button>
+        <button @click="save" :disabled="!canSave" class="flex-1 rounded-btn bg-blue py-[10px] text-[13px] font-bold text-white hover:opacity-90 transition disabled:opacity-40 disabled:cursor-not-allowed">{{ editItem ? 'Сохранить' : 'Создать' }}</button>
       </template>
     </AppDrawer>
   </AppLayout>

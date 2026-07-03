@@ -95,6 +95,34 @@ const ICONS = {
     moon: [
         { isPath: true, d: 'M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z' },
     ],
+    eye: [
+        { isPath: true, d: 'M12 5C7 5 2.7 8.6 1 13.7c1.7 5.1 6 8.8 11 8.8s9.3-3.7 11-8.8C21.3 8.6 17 5 12 5z' },
+        { isCircle: true, cx: 12, cy: 13, r: 2.5 },
+    ],
+    eyeOff: [
+        { isPath: true, d: 'M3 3l18 18M10.5 10.5a2.5 2.5 0 0 1 3.5 3.5M9.13 9.13a4 4 0 0 0 5.74 5.74' },
+        { isPath: true, d: 'M12 5C7 5 2.7 8.6 1 13.7c.5 1.5 1.2 2.8 2 4M21 13.7C19.3 8.6 17 5 12 5' },
+    ],
+    pencil: [
+        { isPath: true, d: 'M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7' },
+        { isPath: true, d: 'M18.5 2.5a2.12 2.12 0 0 1 3 3L12 15l-4 1 1-4z' },
+    ],
+    trash: [
+        { isPath: true, d: 'M3 6h18M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2' },
+        { isPath: true, d: 'M9 11v6M15 11v6' },
+        { isRect: true, x: 5, y: 8, w: 14, h: 10, rx: 1 },
+    ],
+    image: [
+        { isRect: true, x: 3, y: 3, w: 18, h: 18, rx: 2 },
+        { isFilledCircle: true, cx: 8.5, cy: 8.5, r: 1.5 },
+        { isPath: true, d: 'M21 15l-5-5L5 21' },
+    ],
+    arrowUp: [
+        { isPath: true, d: 'M12 19V5M6 11l6-6 6 6' },
+    ],
+    arrowDown: [
+        { isPath: true, d: 'M12 5v14M18 13l-6 6-6-6' },
+    ],
 }
 
 const shapes = computed(() => ICONS[props.kind] || ICONS.grid)

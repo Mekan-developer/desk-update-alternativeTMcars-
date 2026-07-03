@@ -12,6 +12,7 @@ class DatabaseSeeder extends Seeder
             RegionSeeder::class,
             TariffSeeder::class,
             CategorySeeder::class,
+            CategoryIconSeeder::class,
             RejectionReasonSeeder::class,
             ComplaintReasonSeeder::class,
             UserSeeder::class,
