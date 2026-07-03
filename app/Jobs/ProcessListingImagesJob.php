@@ -9,8 +9,9 @@ use Illuminate\Foundation\Bus\Dispatchable;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Queue\SerializesModels;
 use Illuminate\Support\Facades\Storage;
-use Intervention\Image\ImageManager;
 use Intervention\Image\Drivers\Gd\Driver;
+use Intervention\Image\Encoders\WebpEncoder;
+use Intervention\Image\ImageManager;
 
 class ProcessListingImagesJob implements ShouldQueue
 {
@@ -38,22 +39,22 @@ class ProcessListingImagesJob implements ShouldQueue
         $original = Storage::disk('public')->get($this->originalPath);
 
         // Original: max 1200px
-        $img = $manager->read($original);
+        $img = $manager->decodeBinary($original);
         $img->scaleDown(width: 1200, height: 1200);
         $originalWebp = "{$basePath}/original/{$fileName}.webp";
-        Storage::disk('public')->put($originalWebp, $img->toWebp(85));
+        Storage::disk('public')->put($originalWebp, $img->encode(new WebpEncoder(quality: 85))->toString());
 
         // Medium: 600×600 fit
-        $img = $manager->read($original);
+        $img = $manager->decodeBinary($original);
         $img->cover(600, 600);
         $mediumWebp = "{$basePath}/medium/{$fileName}.webp";
-        Storage::disk('public')->put($mediumWebp, $img->toWebp(80));
+        Storage::disk('public')->put($mediumWebp, $img->encode(new WebpEncoder(quality: 80))->toString());
 
         // Thumb: 150×150 crop
-        $img = $manager->read($original);
+        $img = $manager->decodeBinary($original);
         $img->cover(150, 150);
         $thumbWebp = "{$basePath}/thumb/{$fileName}.webp";
-        Storage::disk('public')->put($thumbWebp, $img->toWebp(75));
+        Storage::disk('public')->put($thumbWebp, $img->encode(new WebpEncoder(quality: 75))->toString());
 
         $media->update([
             'original_path' => $originalWebp,
