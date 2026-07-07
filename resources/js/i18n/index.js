@@ -16,6 +16,7 @@ const messages = {
             tariffs: 'Тарифы',
             statistics: 'Статистика',
             push: 'Push-уведомления',
+            settings: 'Настройки',
         },
         status: {
             pending: 'На проверке',
@@ -93,6 +94,7 @@ const messages = {
             tariffs: 'Taripler',
             statistics: 'Statistika',
             push: 'Push-bildirişler',
+            settings: 'Sazlamalar',
         },
         status: {
             pending: 'Barlanýar',

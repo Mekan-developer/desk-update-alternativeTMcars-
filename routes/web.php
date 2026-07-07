@@ -13,6 +13,8 @@ use App\Http\Controllers\Admin\PushController;
 use App\Http\Controllers\Admin\RegionController;
 use App\Http\Controllers\Admin\RejectionReasonController;
 use App\Http\Controllers\Admin\ReviewController;
+use App\Http\Controllers\Admin\SettingsController;
+use App\Http\Controllers\Admin\SmsGatewayController;
 use App\Http\Controllers\Admin\StatisticsController;
 use App\Http\Controllers\Admin\TariffController;
 use App\Http\Controllers\Admin\UserController;
@@ -28,6 +30,7 @@ Route::middleware(['auth', 'role:admin,manager'])->group(function () {
 
     // Users
     Route::resource('users', UserController::class)->except('create', 'edit', 'show');
+    Route::get('users/check-phone',         [UserController::class, 'checkPhone'])->name('users.check-phone');
     Route::get('users/{user}',              [UserController::class, 'show'])->name('users.show');
     Route::patch('users/{user}/block',      [UserController::class, 'block'])->name('users.block');
     Route::patch('users/{user}/unblock',    [UserController::class, 'unblock'])->name('users.unblock');
@@ -71,10 +74,12 @@ Route::middleware(['auth', 'role:admin,manager'])->group(function () {
     Route::resource('tariffs', TariffController::class)->except('create', 'edit', 'show');
     Route::patch('tariffs/{tariff}/toggle', [TariffController::class, 'toggle'])->name('tariffs.toggle');
 
-    // News
-    Route::resource('news', NewsController::class)->except('create', 'edit', 'show');
-    Route::patch('news/{news}/publish',   [NewsController::class, 'publish'])->name('news.publish');
-    Route::patch('news/{news}/unpublish', [NewsController::class, 'unpublish'])->name('news.unpublish');
+    // News — manager needs can_manage_news permission (see Settings → Роли и права)
+    Route::middleware('news.permission')->group(function () {
+        Route::resource('news', NewsController::class)->except('create', 'edit', 'show');
+        Route::patch('news/{news}/publish',   [NewsController::class, 'publish'])->name('news.publish');
+        Route::patch('news/{news}/unpublish', [NewsController::class, 'unpublish'])->name('news.unpublish');
+    });
 
     // Complaints
     Route::get('complaints',                          [ComplaintController::class, 'index'])->name('complaints.index');
@@ -88,16 +93,21 @@ Route::middleware(['auth', 'role:admin,manager'])->group(function () {
     // Statistics
     Route::get('statistics', [StatisticsController::class, 'index'])->name('statistics.index');
 
-    // Service status (Horizon + Reverb health check)
-    Route::get('status', StatusController::class)->name('status');
-
-    // Push — admin only
+    // Push, Settings — admin only
     Route::middleware('role:admin')->group(function () {
         Route::get('push',       [PushController::class, 'index'])->name('push.index');
         Route::post('push/send', [PushController::class, 'send'])->name('push.send');
 
         Route::resource('rejection-reasons', RejectionReasonController::class)->except('create', 'edit', 'show');
         Route::resource('complaint-reasons', ComplaintReasonController::class)->except('create', 'edit', 'show');
+
+        // Settings (мониторинг, права менеджера, справочники причин, локализация, SMS-шлюз)
+        Route::get('settings',                        [SettingsController::class, 'index'])->name('settings.index');
+        Route::get('settings/monitoring',              StatusController::class)->name('settings.monitoring');
+        Route::patch('settings/manager-permissions',   [SettingsController::class, 'updateManagerPermissions'])->name('settings.manager-permissions');
+        Route::patch('settings/localization',          [SettingsController::class, 'updateLocalization'])->name('settings.localization');
+        Route::get('settings/sms-gateway',             [SmsGatewayController::class, 'status'])->name('settings.sms-gateway');
+        Route::post('settings/sms-gateway/test',       [SmsGatewayController::class, 'test'])->name('settings.sms-gateway.test');
     });
 });
 

@@ -3,7 +3,6 @@ import { ref, computed, onMounted, watch } from 'vue'
 import { Link, router, usePage } from '@inertiajs/vue3'
 import { useI18n } from 'vue-i18n'
 import Toasts from '@/Components/Toasts.vue'
-import ServiceStatus from '@/Components/ServiceStatus.vue'
 import Icon from '@/Components/Icon.vue'
 
 const { t, locale } = useI18n()
@@ -64,9 +63,11 @@ const sections = computed(() => [
     { title: 'СИСТЕМА', eyebrow: 'Система', items: [
         { label: t('nav.tariffs'),     routeName: 'tariffs.index',     icon: 'coin' },
         { label: t('nav.statistics'), routeName: 'statistics.index',  icon: 'chart' },
-        ...(user.value?.role === 'admin' ? [{ label: t('nav.push'), routeName: 'push.index', icon: 'bell' }] : []),
+        ...(user.value?.role === 'admin' ? [
+            { label: t('nav.push'),     routeName: 'push.index',     icon: 'bell' },
+            { label: t('nav.settings'), routeName: 'settings.index', icon: 'settings' },
+        ] : []),
     ]},
-    { title: 'МОНИТОРИНГ', eyebrow: 'Мониторинг', items: [] },
 ])
 
 function isActive(routeName) {
@@ -110,8 +111,6 @@ function logout() {
             class="text-[10.5px] font-bold uppercase tracking-[.07em] text-[var(--section-label)] px-2.5"
             :style="{ padding: (si === 0 ? '8px' : '16px') + ' 10px 6px' }"
           >{{ section.title }}</div>
-
-          <ServiceStatus v-if="section.title === 'МОНИТОРИНГ'" :collapsed="collapsed" />
 
           <Link
             v-for="item in section.items"

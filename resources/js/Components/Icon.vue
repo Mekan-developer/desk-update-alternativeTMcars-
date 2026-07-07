@@ -123,6 +123,17 @@ const ICONS = {
     arrowDown: [
         { isPath: true, d: 'M12 5v14M18 13l-6 6-6-6' },
     ],
+    settings: [
+        { isPath: true, d: 'M12 2l1.1 2.4 2.6-.5.7 2.5 2.5.7-.5 2.6L20.8 12l-1.4 2.3.5 2.6-2.5.7-.7 2.5-2.6-.5L12 22l-1.1-2.4-2.6.5-.7-2.5-2.5-.7.5-2.6L3.2 12l1.4-2.3-.5-2.6 2.5-.7.7-2.5 2.6.5z' },
+        { isCircle: true, cx: 12, cy: 12, r: 3.2 },
+    ],
+    check: [
+        { isPath: true, d: 'M4 12.5l5 5L20 6' },
+    ],
+    lock: [
+        { isRect: true, x: 5, y: 11, w: 14, h: 9, rx: 2 },
+        { isPath: true, d: 'M8 11V7.5a4 4 0 0 1 8 0V11' },
+    ],
 }
 
 const shapes = computed(() => ICONS[props.kind] || ICONS.grid)
