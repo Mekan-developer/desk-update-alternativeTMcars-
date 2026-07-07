@@ -14,16 +14,22 @@ use App\Repositories\Interfaces\ChatRepositoryInterface;
 use App\Repositories\Interfaces\ComplaintRepositoryInterface;
 use App\Repositories\Interfaces\ListingRepositoryInterface;
 use App\Repositories\Interfaces\NewsRepositoryInterface;
+use App\Repositories\Interfaces\RegionRepositoryInterface;
 use App\Repositories\Interfaces\ReviewRepositoryInterface;
+use App\Repositories\Interfaces\SmsCodeRepositoryInterface;
 use App\Repositories\Interfaces\TariffRepositoryInterface;
 use App\Repositories\Interfaces\UserRepositoryInterface;
 use App\Repositories\Interfaces\VideoRepositoryInterface;
 use App\Repositories\ListingRepository;
 use App\Repositories\NewsRepository;
+use App\Repositories\RegionRepository;
 use App\Repositories\ReviewRepository;
+use App\Repositories\SmsCodeRepository;
 use App\Repositories\TariffRepository;
 use App\Repositories\UserRepository;
 use App\Repositories\VideoRepository;
+use App\Services\Sms\LogSmsService;
+use App\Services\Sms\SmsSenderInterface;
 use Illuminate\Support\Facades\Vite;
 use Illuminate\Support\ServiceProvider;
 
@@ -39,8 +45,13 @@ class AppServiceProvider extends ServiceProvider
         $this->app->bind(TariffRepositoryInterface::class, TariffRepository::class);
         $this->app->bind(ChatRepositoryInterface::class, ChatRepository::class);
         $this->app->bind(NewsRepositoryInterface::class, NewsRepository::class);
+        $this->app->bind(RegionRepositoryInterface::class, RegionRepository::class);
         $this->app->bind(ComplaintRepositoryInterface::class, ComplaintRepository::class);
         $this->app->bind(ReviewRepositoryInterface::class, ReviewRepository::class);
+        $this->app->bind(SmsCodeRepositoryInterface::class, SmsCodeRepository::class);
+
+        // Dev: OTP пишется в laravel.log; прод — заменить на LocalModemSmsService
+        $this->app->bind(SmsSenderInterface::class, LogSmsService::class);
     }
 
     public function boot(): void

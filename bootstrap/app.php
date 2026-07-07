@@ -19,12 +19,16 @@ return Application::configure(basePath: dirname(__DIR__))
         ]);
 
         $middleware->alias([
-            'role' => \App\Http\Middleware\EnsureRole::class,
+            'role'           => \App\Http\Middleware\EnsureRole::class,
+            'news.permission' => \App\Http\Middleware\EnsureNewsPermission::class,
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions) {
         //
     })
+    // Листенеры регистрируются только явно в EventServiceProvider::$listen;
+    // авто-дискавери отключён, иначе каждый листенер срабатывал бы дважды
+    ->withEvents(discover: false)
     ->withProviders([
         \App\Providers\EventServiceProvider::class,
     ])
