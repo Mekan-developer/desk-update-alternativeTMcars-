@@ -25,6 +25,11 @@ class UserRepository implements UserRepositoryInterface
         return User::with('region', 'city', 'tariff')->findOrFail($id);
     }
 
+    public function findByPhone(string $phone): ?User
+    {
+        return User::where('phone', $phone)->first();
+    }
+
     public function create(array $data): User
     {
         return User::create($data);
@@ -44,5 +49,10 @@ class UserRepository implements UserRepositoryInterface
     public function updateFcmToken(User $user, string $token): void
     {
         $user->update(['fcm_token' => $token]);
+    }
+
+    public function updateLocale(User $user, ?string $locale): void
+    {
+        $user->update(['locale' => $locale]);
     }
 }

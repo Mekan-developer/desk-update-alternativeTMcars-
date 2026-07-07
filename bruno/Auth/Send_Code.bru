@@ -1,0 +1,37 @@
+meta {
+  name: Отправить SMS-код
+  type: http
+  seq: 1
+}
+
+post {
+  url: {{base_url}}/v1/auth/send-code
+  body: json
+}
+
+headers {
+  Accept: application/json
+  Accept-Language: ru
+}
+
+body:json {
+  {
+    "phone": "+99361123456"
+  }
+}
+
+docs {
+  Регистрация и вход — один сценарий. Код приходит по SMS.
+  Dev-режим: код пишется в storage/logs/laravel.log (LogSmsService).
+  Повторная отправка — не чаще одного раза в 60 сек.
+}
+
+tests {
+  test("status is 200", function() {
+    expect(res.getStatus()).to.equal(200);
+  });
+
+  test("returns expires_in", function() {
+    expect(res.getBody().data).to.have.property('expires_in');
+  });
+}

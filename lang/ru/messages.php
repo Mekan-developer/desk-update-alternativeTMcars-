@@ -27,9 +27,26 @@ return [
 
     'user_blocked'   => 'Пользователь заблокирован',
     'user_unblocked' => 'Пользователь разблокирован',
+    'user_blocked_message' => 'Ваш аккаунт заблокирован. Обратитесь в поддержку',
+
+    'sms_code_text'         => 'Ваш код подтверждения: :code',
+    'sms_code_sent'         => 'Код отправлен',
+    'sms_code_invalid'      => 'Неверный или просроченный код',
+    'sms_too_many_attempts' => 'Слишком много попыток. Запросите новый код',
+    'sms_resend_wait'       => 'Повторная отправка будет доступна через :seconds сек.',
+    'auth_success'          => 'Вход выполнен',
+    'logged_out'            => 'Вы вышли из аккаунта',
+    'phone_changed'         => 'Номер телефона изменён',
+    'phone_already_registered' => 'Номер уже зарегистрирован',
+    'phone_format_invalid'     => 'Неверный формат номера: ожидается +993 и 8 цифр',
 
     'push_listing_approved_title' => 'Объявление одобрено',
     'push_listing_approved_body'  => 'Ваше объявление «:title» успешно прошло модерацию',
     'push_listing_rejected_title' => 'Объявление отклонено',
     'push_listing_rejected_body'  => 'Ваше объявление «:title» было отклонено',
+
+    'manager_permission_updated' => 'Права менеджера обновлены',
+    'localization_updated'       => 'Настройки локализации сохранены',
+    'sms_test_sent'              => 'Тестовое SMS отправлено',
+    'sms_test_failed'            => 'Не удалось отправить тестовое SMS',
 ];

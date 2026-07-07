@@ -27,9 +27,26 @@ return [
 
     'user_blocked'   => 'Ulanyjy petiklendi',
     'user_unblocked' => 'Ulanyjy petiklemeden çykaryldy',
+    'user_blocked_message' => 'Siziň hasabyňyz petiklendi. Goldaw gullugyna ýüz tutuň',
+
+    'sms_code_text'         => 'Siziň tassyklama koduňyz: :code',
+    'sms_code_sent'         => 'Kod iberildi',
+    'sms_code_invalid'      => 'Kod nädogry ýa-da möhleti geçen',
+    'sms_too_many_attempts' => 'Synanyşyk gaty köp. Täze kod soraň',
+    'sms_resend_wait'       => 'Gaýtadan ibermek :seconds sekuntdan soň mümkin bolar',
+    'auth_success'          => 'Giriş üstünlikli boldy',
+    'logged_out'            => 'Hasapdan çykdyňyz',
+    'phone_changed'         => 'Telefon belgisi üýtgedildi',
+    'phone_already_registered' => 'Bu belgi eýýäm hasaba alnan',
+    'phone_format_invalid'     => 'Belginiň formaty nädogry: +993 we 8 sifr bolmaly',
 
     'push_listing_approved_title' => 'Bildiriş tassyklandy',
     'push_listing_approved_body'  => 'Siziň «:title» bildiryşiňiz moderasiýadan geçdi',
     'push_listing_rejected_title' => 'Bildiriş ret edildi',
     'push_listing_rejected_body'  => 'Siziň «:title» bildiryşiňiz ret edildi',
+
+    'manager_permission_updated' => 'Dolandyryjynyň hukuklary üýtgedildi',
+    'localization_updated'       => 'Lokalizasiýa sazlamalary saklandy',
+    'sms_test_sent'              => 'Test SMS iberildi',
+    'sms_test_failed'            => 'Test SMS iberip bolmady',
 ];

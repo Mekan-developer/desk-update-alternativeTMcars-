@@ -1,0 +1,22 @@
+meta {
+  name: Выход (отзыв токена)
+  type: http
+  seq: 3
+}
+
+post {
+  url: {{base_url}}/v1/auth/logout
+  body: none
+}
+
+headers {
+  Accept: application/json
+  Accept-Language: ru
+  Authorization: Bearer {{token}}
+}
+
+tests {
+  test("status is 200", function() {
+    expect(res.getStatus()).to.equal(200);
+  });
+}
