@@ -7,12 +7,13 @@ use App\Actions\BlockUserAction;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Admin\AssignTariffRequest;
 use App\Http\Requests\Admin\BlockUserRequest;
+use App\Http\Requests\Admin\CheckUserPhoneRequest;
 use App\Http\Requests\Admin\StoreUserRequest;
 use App\Http\Requests\Admin\UpdateUserRequest;
 use App\Models\Complaint;
-use App\Models\Region;
 use App\Models\Tariff;
 use App\Models\User;
+use App\Services\RegionService;
 use App\Services\UserService;
 use Inertia\Inertia;
 
@@ -20,6 +21,7 @@ class UserController extends Controller
 {
     public function __construct(
         private readonly UserService $userService,
+        private readonly RegionService $regionService,
         private readonly BlockUserAction $blockAction,
         private readonly AssignTariffAction $assignTariffAction,
     ) {}
@@ -28,7 +30,7 @@ class UserController extends Controller
     {
         return Inertia::render('Users/Index', [
             'users'   => $this->userService->list($request->only('search', 'status', 'region_id')),
-            'regions' => Region::all(),
+            'regions' => $this->regionService->activeListWithDistricts(),
             'tariffs' => Tariff::where('is_active', true)->get(),
             'filters' => $request->only('search', 'status', 'region_id'),
         ]);
@@ -36,18 +38,19 @@ class UserController extends Controller
 
     public function store(StoreUserRequest $request)
     {
-        if ($request->validated('role') !== 'user' && ! $request->user()->isAdmin()) {
-            abort(403);
-        }
-
         $this->userService->store($request->validated());
 
         return back()->with('toast', ['type' => 'success', 'message' => __('messages.created')]);
     }
 
+    public function checkPhone(CheckUserPhoneRequest $request)
+    {
+        return response()->json($this->userService->phoneStatus($request->validated('phone')));
+    }
+
     public function show(User $user)
     {
-        $user->load('region', 'city', 'tariff');
+        $user->load('region', 'city', 'district', 'tariff');
 
         return Inertia::render('Users/Show', [
             'user'         => $user,
