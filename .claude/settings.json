@@ -5,7 +5,8 @@
       "Read(//home/ser/.npm/_logs/**)",
       "Bash(python3 -c \"import json,sys; d=json.load\\(sys.stdin\\); [print\\(k,v.get\\('version',''\\)\\) for k,v in d.get\\('packages',{}\\).items\\(\\) if not v.get\\('version',''\\)]\")",
       "Bash(DB_DATABASE=/tmp/claude-1000/-home-projects-doskaObnawleniya/894e10b5-6c79-4cdc-860b-2511cc4d9d59/scratchpad/test_categories.sqlite php artisan migrate --path=database/migrations/2026_07_05_000003_make_categories_name_tk_nullable.php --force)",
-      "Bash(DB_DATABASE=/tmp/claude-1000/-home-projects-doskaObnawleniya/894e10b5-6c79-4cdc-860b-2511cc4d9d59/scratchpad/test_categories.sqlite php artisan test --filter=CategoryTest)"
+      "Bash(DB_DATABASE=/tmp/claude-1000/-home-projects-doskaObnawleniya/894e10b5-6c79-4cdc-860b-2511cc4d9d59/scratchpad/test_categories.sqlite php artisan test --filter=CategoryTest)",
+      "Bash(composer show *)"
     ]
   }
 }

@@ -2,7 +2,6 @@ FROM php:8.3-fpm
 
 # Системные зависимости
 RUN apt-get update && apt-get install -y \
-    apt-utils \
     libpng-dev \
     libjpeg62-turbo-dev \
     libwebp-dev \
@@ -23,8 +22,8 @@ RUN apt-get update && apt-get install -y \
         gd \
         zip \
         mbstring \
-        xml \
-        curl \
+        pcntl \
+        posix \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
 
