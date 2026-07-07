@@ -1,0 +1,33 @@
+meta {
+  name: Смена номера — шаг 1 (код на новый номер)
+  type: http
+  seq: 5
+}
+
+post {
+  url: {{base_url}}/v1/profile/phone/send-code
+  body: json
+}
+
+headers {
+  Accept: application/json
+  Accept-Language: ru
+  Authorization: Bearer {{token}}
+}
+
+body:json {
+  {
+    "phone": "+99365999888"
+  }
+}
+
+docs {
+  Новый номер должен быть свободен (unique).
+  Код приходит на НОВЫЙ номер (dev: storage/logs/laravel.log).
+}
+
+tests {
+  test("status is 200", function() {
+    expect(res.getStatus()).to.equal(200);
+  });
+}

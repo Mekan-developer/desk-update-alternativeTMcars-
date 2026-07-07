@@ -1,0 +1,26 @@
+meta {
+  name: Мой профиль
+  type: http
+  seq: 1
+}
+
+get {
+  url: {{base_url}}/v1/profile
+  body: none
+}
+
+headers {
+  Accept: application/json
+  Accept-Language: ru
+  Authorization: Bearer {{token}}
+}
+
+tests {
+  test("status is 200", function() {
+    expect(res.getStatus()).to.equal(200);
+  });
+
+  test("has phone", function() {
+    expect(res.getBody().data).to.have.property('phone');
+  });
+}

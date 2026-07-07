@@ -1,0 +1,110 @@
+<?php
+
+namespace App\Http\Controllers\Api\V1;
+
+use App\Http\Controllers\Controller;
+use App\Http\Requests\Api\V1\ChangePhoneRequest;
+use App\Http\Requests\Api\V1\ConfirmPhoneRequest;
+use App\Http\Requests\Api\V1\UpdateAvatarRequest;
+use App\Http\Requests\Api\V1\UpdateProfileRequest;
+use App\Http\Resources\Api\V1\UserResource;
+use App\Services\AuthService;
+use App\Services\UserService;
+use Illuminate\Http\Request;
+
+class ProfileController extends Controller
+{
+    public function __construct(
+        private readonly UserService $userService,
+        private readonly AuthService $authService,
+    ) {}
+
+    /**
+     * Текущий профиль.
+     * GET /api/v1/profile
+     */
+    public function show(Request $request)
+    {
+        return response()->json([
+            'data'    => new UserResource($request->user()->load('region', 'city')),
+            'message' => 'Success',
+        ]);
+    }
+
+    /**
+     * Частичное обновление профиля (имя, пол, дата рождения, регион, город).
+     * PUT /api/v1/profile
+     */
+    public function update(UpdateProfileRequest $request)
+    {
+        $user = $this->userService->update($request->user(), $request->validated());
+
+        return response()->json([
+            'data'    => new UserResource($user->load('region', 'city')),
+            'message' => __('messages.updated'),
+        ]);
+    }
+
+    /**
+     * Загрузка аватара (конвертируется в WebP).
+     * POST /api/v1/profile/avatar
+     */
+    public function updateAvatar(UpdateAvatarRequest $request)
+    {
+        $user = $this->userService->updateAvatar($request->user(), $request->file('avatar'));
+
+        return response()->json([
+            'data'    => new UserResource($user->load('region', 'city')),
+            'message' => __('messages.updated'),
+        ]);
+    }
+
+    /**
+     * Удаление аватара.
+     * DELETE /api/v1/profile/avatar
+     */
+    public function deleteAvatar(Request $request)
+    {
+        $user = $this->userService->removeAvatar($request->user());
+
+        return response()->json([
+            'data'    => new UserResource($user->load('region', 'city')),
+            'message' => __('messages.updated'),
+        ]);
+    }
+
+    /**
+     * Смена номера, шаг 1: SMS-код на новый номер.
+     * POST /api/v1/profile/phone/send-code
+     */
+    public function sendPhoneCode(ChangePhoneRequest $request)
+    {
+        $this->authService->requestPhoneChange($request->validated('phone'));
+
+        return response()->json([
+            'data' => [
+                'expires_in'   => config('sms.ttl'),
+                'resend_after' => config('sms.resend_cooldown'),
+            ],
+            'message' => __('messages.sms_code_sent'),
+        ]);
+    }
+
+    /**
+     * Смена номера, шаг 2: подтверждение кода — номер обновляется.
+     * POST /api/v1/profile/phone/confirm
+     */
+    public function confirmPhone(ConfirmPhoneRequest $request)
+    {
+        $user = $this->authService->confirmPhoneChange(
+            $request->user(),
+            $request->validated('phone'),
+            $request->validated('code'),
+        );
+
+        return response()->json([
+            'data'    => new UserResource($user->load('region', 'city')),
+            'message' => __('messages.phone_changed'),
+        ]);
+    }
+}

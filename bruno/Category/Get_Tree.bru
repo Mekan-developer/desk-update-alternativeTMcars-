@@ -1,0 +1,31 @@
+meta {
+  name: Получить дерево категорий
+  type: http
+  seq: 1
+}
+
+get {
+  url: {{base_url}}/v1/categories
+  body: none
+}
+
+headers {
+  Accept: application/json
+}
+
+tests {
+  test("status is 200", function() {
+    expect(res.getStatus()).to.equal(200);
+  });
+
+  test("response has data array", function() {
+    expect(res.getBody()).to.have.property('data');
+  });
+
+  test("top-level category has children array", function() {
+    const body = res.getBody();
+    if (body.data.length > 0) {
+      expect(body.data[0]).to.have.property('children');
+    }
+  });
+}

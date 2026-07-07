@@ -1,0 +1,25 @@
+meta {
+  name: Загрузить аватар
+  type: http
+  seq: 3
+}
+
+post {
+  url: {{base_url}}/v1/profile/avatar
+  body: multipartForm
+}
+
+headers {
+  Accept: application/json
+  Accept-Language: ru
+  Authorization: Bearer {{token}}
+}
+
+body:multipart-form {
+  avatar: @file()
+}
+
+docs {
+  jpg/png/webp до 5МБ. Конвертируется в квадратный WebP 400×400.
+  Удаление аватара: DELETE {{base_url}}/v1/profile/avatar
+}
