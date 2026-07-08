@@ -1,18 +1,23 @@
 <script setup>
 import { ref, computed, onMounted, onUnmounted } from 'vue'
 import { router } from '@inertiajs/vue3'
+import { useI18n } from 'vue-i18n'
 import AppLayout from '@/Layouts/AppLayout.vue'
 import GeoColumn from '@/Components/GeoColumn.vue'
 import ToggleSwitch from '@/Components/ToggleSwitch.vue'
 import Icon from '@/Components/Icon.vue'
 
+const { t } = useI18n()
+
 const props = defineProps({
     monitoring:        { type: Object, required: true },
     canManageNews:     { type: Boolean, default: false },
+    canManageBanners:  { type: Boolean, default: false },
     rejectionReasons:  { type: Array, default: () => [] },
     complaintReasons:  { type: Array, default: () => [] },
     ownLocale:         { type: String, default: null },
     defaultAppLocale:  { type: String, default: 'ru' },
+    boostIntervalHours:{ type: Number, default: 24 },
     smsStatus:         { type: Object, required: true },
 })
 
@@ -47,24 +52,31 @@ function dotClass(ok) { return ok ? 'bg-green' : 'bg-red' }
 function badgeClass(ok) { return ok ? 'bg-green/10 text-green' : 'bg-red/10 text-red' }
 
 // ── Роли и права доступа ───────────────────────────────────
-const permissionRows = [
-    { label: 'Просмотр объявлений, роликов, отзывов, жалоб', manager: true },
-    { label: 'Модерация объявлений / роликов / отзывов / жалоб', manager: true },
-    { label: 'Просмотр пользователей', manager: true },
-    { label: 'Работа в чате с пользователями', manager: true },
-    { label: 'Просмотр статистики', manager: true },
-    { label: 'Управление новостями', manager: 'toggle' },
-    { label: 'Push-уведомления', manager: false },
-    { label: 'Справочники причин отклонения / жалоб', manager: false },
-    { label: 'Удаление данных', manager: false },
-    { label: 'Создание админов/менеджеров, смена ролей', manager: false },
-    { label: 'Критические системные настройки', manager: false },
-]
+const permissionRows = computed(() => [
+    { label: t('settings.permViewContent'), manager: true },
+    { label: t('settings.permModerate'), manager: true },
+    { label: t('settings.permViewUsers'), manager: true },
+    { label: t('settings.permChat'), manager: true },
+    { label: t('settings.permStats'), manager: true },
+    { label: t('settings.permNews'), manager: 'toggle', toggleKey: 'news' },
+    { label: t('settings.permBanners'), manager: 'toggle', toggleKey: 'banners' },
+    { label: t('settings.permPush'), manager: false },
+    { label: t('settings.permReasons'), manager: false },
+    { label: t('settings.permDelete'), manager: false },
+    { label: t('settings.permCreateAdmins'), manager: false },
+    { label: t('settings.permCritical'), manager: false },
+])
 
 const canManageNews = ref(props.canManageNews)
 function toggleManagerNews(value) {
     canManageNews.value = value
     router.patch(route('settings.manager-permissions'), { can_manage_news: value }, opts)
+}
+
+const canManageBanners = ref(props.canManageBanners)
+function toggleManagerBanners(value) {
+    canManageBanners.value = value
+    router.patch(route('settings.manager-permissions'), { can_manage_banners: value }, opts)
 }
 
 // ── Справочники причин ─────────────────────────────────────
@@ -90,7 +102,7 @@ function toggleRejection(item) {
     router.put(route('rejection-reasons.update', item.id), { is_active: !item.is_active }, opts)
 }
 function destroyRejection(item) {
-    if (!confirm(`Удалить причину «${item.name_ru}»?`)) return
+    if (!confirm(t('settings.confirmDeleteReason', { name: item.name_ru }))) return
     router.delete(route('rejection-reasons.destroy', item.id), opts)
 }
 
@@ -108,7 +120,7 @@ function toggleComplaint(item) {
     router.put(route('complaint-reasons.update', item.id), { is_active: !item.is_active }, opts)
 }
 function destroyComplaint(item) {
-    if (!confirm(`Удалить причину «${item.name_ru}»?`)) return
+    if (!confirm(t('settings.confirmDeleteReason', { name: item.name_ru }))) return
     router.delete(route('complaint-reasons.destroy', item.id), opts)
 }
 
@@ -121,6 +133,15 @@ function saveLocalization() {
         own_locale: ownLocale.value,
         default_app_locale: defaultAppLocale.value,
     }, opts)
+}
+
+// ── Объявления: интервал поднятия ──────────────────────────
+const boostIntervalHours = ref(props.boostIntervalHours)
+const boostErrors        = ref({})
+function saveBoostSettings() {
+    boostErrors.value = {}
+    router.patch(route('settings.boost'), { boost_interval_hours: boostIntervalHours.value },
+        { ...opts, onError: e => (boostErrors.value = e) })
 }
 
 // ── SMS-шлюз ───────────────────────────────────────────────
@@ -136,34 +157,34 @@ function sendTestSms() {
 
 <template>
   <AppLayout>
-    <template #header>Настройки</template>
+    <template #header>{{ t('nav.settings') }}</template>
 
     <div class="space-y-8">
       <!-- 1. Мониторинг -->
       <section>
-        <h2 class="mb-3 text-[13px] font-bold uppercase tracking-wide text-muted">Мониторинг</h2>
+        <h2 class="mb-3 text-[13px] font-bold uppercase tracking-wide text-muted">{{ t('settings.monitoring') }}</h2>
         <div class="grid gap-4 sm:grid-cols-2">
           <div class="rounded-card bg-white dark:bg-dcard border border-line dark:border-dline p-5">
             <div class="flex items-center justify-between">
               <div class="flex items-center gap-2">
                 <span class="h-2.5 w-2.5 rounded-full" :class="dotClass(monitoring.queues.ok)"></span>
-                <span class="font-extrabold text-ink dark:text-slate-100">Очереди</span>
+                <span class="font-extrabold text-ink dark:text-slate-100">{{ t('settings.queues') }}</span>
               </div>
               <span class="rounded-pill px-2.5 py-1 text-[11px] font-bold" :class="badgeClass(monitoring.queues.ok)">
-                {{ monitoring.queues.ok ? 'Работает' : 'Недоступно' }}
+                {{ monitoring.queues.ok ? t('settings.working') : t('settings.unavailable') }}
               </span>
             </div>
             <div class="mt-4 grid grid-cols-2 gap-3 text-center">
               <div class="rounded-[8px] bg-surface dark:bg-dbg p-3">
                 <div class="text-xl font-extrabold text-ink dark:text-slate-100">{{ monitoring.queues.pending }}</div>
-                <div class="text-[11px] text-muted">в очереди</div>
+                <div class="text-[11px] text-muted">{{ t('settings.inQueue') }}</div>
               </div>
               <div class="rounded-[8px] bg-surface dark:bg-dbg p-3">
                 <div class="text-xl font-extrabold" :class="monitoring.queues.failed > 0 ? 'text-red' : 'text-ink dark:text-slate-100'">{{ monitoring.queues.failed }}</div>
-                <div class="text-[11px] text-muted">упавших</div>
+                <div class="text-[11px] text-muted">{{ t('settings.failed') }}</div>
               </div>
             </div>
-            <div class="mt-3 text-[11px] text-muted">{{ monitoring.queues.worker || 'воркер не найден' }} · обновлено {{ secondsAgo }} сек назад</div>
+            <div class="mt-3 text-[11px] text-muted">{{ monitoring.queues.worker || t('settings.workerMissing') }} · {{ t('settings.updatedAgo', { s: secondsAgo }) }}</div>
           </div>
 
           <div class="rounded-card bg-white dark:bg-dcard border border-line dark:border-dline p-5">
@@ -173,34 +194,34 @@ function sendTestSms() {
                 <span class="font-extrabold text-ink dark:text-slate-100">WS (Reverb)</span>
               </div>
               <span class="rounded-pill px-2.5 py-1 text-[11px] font-bold" :class="badgeClass(monitoring.ws.ok)">
-                {{ monitoring.ws.ok ? 'Подключено' : 'Не подключено' }}
+                {{ monitoring.ws.ok ? t('settings.connected') : t('settings.notConnected') }}
               </span>
             </div>
             <div class="mt-4 grid grid-cols-2 gap-3 text-center">
               <div class="rounded-[8px] bg-surface dark:bg-dbg p-3">
                 <div class="truncate text-xl font-extrabold text-ink dark:text-slate-100">{{ monitoring.ws.host }}</div>
-                <div class="text-[11px] text-muted">хост</div>
+                <div class="text-[11px] text-muted">{{ t('settings.host') }}</div>
               </div>
               <div class="rounded-[8px] bg-surface dark:bg-dbg p-3">
                 <div class="text-xl font-extrabold text-ink dark:text-slate-100">{{ monitoring.ws.port }}</div>
-                <div class="text-[11px] text-muted">порт</div>
+                <div class="text-[11px] text-muted">{{ t('settings.port') }}</div>
               </div>
             </div>
-            <div class="mt-3 text-[11px] text-muted">обновлено {{ secondsAgo }} сек назад</div>
+            <div class="mt-3 text-[11px] text-muted">{{ t('settings.updatedAgo', { s: secondsAgo }) }}</div>
           </div>
         </div>
       </section>
 
       <!-- 2. Роли и права доступа -->
       <section>
-        <h2 class="mb-3 text-[13px] font-bold uppercase tracking-wide text-muted">Роли и права доступа</h2>
+        <h2 class="mb-3 text-[13px] font-bold uppercase tracking-wide text-muted">{{ t('settings.roles') }}</h2>
         <div class="overflow-hidden rounded-card bg-white dark:bg-dcard border border-line dark:border-dline">
           <table class="w-full text-[13px]">
             <thead>
               <tr class="border-b border-line dark:border-dline text-left text-muted">
-                <th class="px-5 py-3 font-semibold">Право</th>
-                <th class="w-32 px-5 py-3 text-center font-semibold">Администратор</th>
-                <th class="w-32 px-5 py-3 text-center font-semibold">Менеджер</th>
+                <th class="px-5 py-3 font-semibold">{{ t('settings.permission') }}</th>
+                <th class="w-32 px-5 py-3 text-center font-semibold">{{ t('role.admin') }}</th>
+                <th class="w-32 px-5 py-3 text-center font-semibold">{{ t('role.manager') }}</th>
               </tr>
             </thead>
             <tbody class="divide-y divide-line dark:divide-dline">
@@ -210,7 +231,14 @@ function sendTestSms() {
                   <Icon kind="check" :size="16" class="inline text-green" />
                 </td>
                 <td class="px-5 py-3 text-center">
-                  <ToggleSwitch v-if="row.manager === 'toggle'" :modelValue="canManageNews" @update:modelValue="toggleManagerNews" />
+                  <ToggleSwitch
+                    v-if="row.manager === 'toggle' && row.toggleKey === 'news'"
+                    :modelValue="canManageNews" @update:modelValue="toggleManagerNews"
+                  />
+                  <ToggleSwitch
+                    v-else-if="row.manager === 'toggle' && row.toggleKey === 'banners'"
+                    :modelValue="canManageBanners" @update:modelValue="toggleManagerBanners"
+                  />
                   <Icon v-else-if="row.manager" kind="check" :size="16" class="inline text-green" />
                   <Icon v-else kind="lock" :size="15" class="inline text-muted" />
                 </td>
@@ -222,13 +250,13 @@ function sendTestSms() {
 
       <!-- 3. Справочники причин -->
       <section>
-        <h2 class="mb-3 text-[13px] font-bold uppercase tracking-wide text-muted">Справочники причин</h2>
+        <h2 class="mb-3 text-[13px] font-bold uppercase tracking-wide text-muted">{{ t('settings.reasons') }}</h2>
         <div class="grid gap-4 sm:grid-cols-2">
           <GeoColumn
             ref="rejectionCol"
-            title="Причины отклонения объявлений"
+            :title="t('settings.rejectionReasons')"
             :items="rejectionItems"
-            empty-text="Нет причин отклонения"
+            :empty-text="t('settings.emptyRejectionReasons')"
             :subtitle="r => r.name_tk"
             :errors="rejectionErrors"
             @create="createRejection"
@@ -238,9 +266,9 @@ function sendTestSms() {
           />
           <GeoColumn
             ref="complaintCol"
-            title="Причины жалоб"
+            :title="t('settings.complaintReasons')"
             :items="complaintItems"
-            empty-text="Нет причин жалоб"
+            :empty-text="t('settings.emptyComplaintReasons')"
             :subtitle="r => r.name_tk"
             :errors="complaintErrors"
             @create="createComplaint"
@@ -251,15 +279,39 @@ function sendTestSms() {
         </div>
       </section>
 
-      <!-- 4. Локализация и SMS -->
+      <!-- 4. Объявления -->
       <section>
-        <h2 class="mb-3 text-[13px] font-bold uppercase tracking-wide text-muted">Локализация и SMS</h2>
+        <h2 class="mb-3 text-[13px] font-bold uppercase tracking-wide text-muted">{{ t('settings.listingsSection') }}</h2>
         <div class="grid gap-4 sm:grid-cols-2">
           <div class="rounded-card bg-white dark:bg-dcard border border-line dark:border-dline p-5">
-            <div class="mb-4 font-extrabold text-ink dark:text-slate-100">Локализация</div>
+            <div class="mb-1 font-extrabold text-ink dark:text-slate-100">{{ t('settings.boostInterval') }}</div>
+            <div class="mb-4 text-[12px] text-muted">{{ t('settings.boostIntervalHint') }}</div>
 
             <div class="mb-4">
-              <div class="mb-1.5 text-[12px] text-muted">Язык интерфейса (для вас)</div>
+              <div class="mb-1.5 text-[12px] text-muted">{{ t('settings.boostIntervalLabel') }}</div>
+              <input
+                v-model.number="boostIntervalHours" type="number" min="1" max="8760"
+                class="w-full rounded-btn border-2 border-line dark:border-dline bg-surface dark:bg-dbg px-3 py-2 text-[14px] font-bold text-ink dark:text-slate-100 outline-none focus:border-blue"
+              />
+              <div v-if="boostErrors.boost_interval_hours" class="mt-1 text-[11px] text-red">{{ boostErrors.boost_interval_hours }}</div>
+            </div>
+
+            <button @click="saveBoostSettings" class="w-full rounded-btn bg-blue py-2 text-[13px] font-bold text-white transition hover:bg-blue/90">
+              {{ t('actions.save') }}
+            </button>
+          </div>
+        </div>
+      </section>
+
+      <!-- 5. Локализация и SMS -->
+      <section>
+        <h2 class="mb-3 text-[13px] font-bold uppercase tracking-wide text-muted">{{ t('settings.localizationAndSms') }}</h2>
+        <div class="grid gap-4 sm:grid-cols-2">
+          <div class="rounded-card bg-white dark:bg-dcard border border-line dark:border-dline p-5">
+            <div class="mb-4 font-extrabold text-ink dark:text-slate-100">{{ t('settings.localization') }}</div>
+
+            <div class="mb-4">
+              <div class="mb-1.5 text-[12px] text-muted">{{ t('settings.ownLocale') }}</div>
               <div class="flex gap-2">
                 <button
                   v-for="l in ['ru', 'tk']" :key="l"
@@ -271,7 +323,7 @@ function sendTestSms() {
             </div>
 
             <div class="mb-4">
-              <div class="mb-1.5 text-[12px] text-muted">Язык приложения по умолчанию (для новых пользователей)</div>
+              <div class="mb-1.5 text-[12px] text-muted">{{ t('settings.defaultAppLocale') }}</div>
               <div class="flex gap-2">
                 <button
                   v-for="l in ['ru', 'tk']" :key="l"
@@ -283,27 +335,27 @@ function sendTestSms() {
             </div>
 
             <button @click="saveLocalization" class="w-full rounded-btn bg-blue py-2 text-[13px] font-bold text-white transition hover:bg-blue/90">
-              Сохранить
+              {{ t('actions.save') }}
             </button>
           </div>
 
           <div class="rounded-card bg-white dark:bg-dcard border border-line dark:border-dline p-5">
             <div class="mb-4 flex items-center justify-between">
-              <div class="font-extrabold text-ink dark:text-slate-100">SMS-шлюз</div>
+              <div class="font-extrabold text-ink dark:text-slate-100">{{ t('settings.smsGateway') }}</div>
               <span
                 class="rounded-pill px-2.5 py-1 text-[11px] font-bold"
                 :class="smsStatus.connected ? 'bg-green/10 text-green' : (smsStatus.configured ? 'bg-red/10 text-red' : 'bg-orange/10 text-orange')"
-              >{{ smsStatus.connected ? 'Подключено' : (smsStatus.configured ? 'Не подключено' : 'Тестовый режим') }}</span>
+              >{{ smsStatus.connected ? t('settings.connected') : (smsStatus.configured ? t('settings.notConnected') : t('settings.testMode')) }}</span>
             </div>
             <div class="mb-1 text-[13px] text-ink dark:text-slate-200">{{ smsStatus.device }}</div>
             <div class="mb-4 text-[11px] text-muted">
-              {{ smsStatus.last_sync_at ? `Синхронизировано: ${smsStatus.last_sync_at}` : 'Синхронизаций ещё не было' }}
+              {{ smsStatus.last_sync_at ? t('settings.syncedAt', { at: smsStatus.last_sync_at }) : t('settings.noSync') }}
             </div>
             <button
               @click="sendTestSms"
               :disabled="sendingTest"
               class="w-full rounded-btn border-2 border-line dark:border-dline py-2 text-[13px] font-bold text-ink dark:text-slate-200 transition hover:border-blue hover:text-blue disabled:cursor-not-allowed disabled:opacity-50"
-            >{{ sendingTest ? 'Отправка…' : 'Отправить тестовое SMS' }}</button>
+            >{{ sendingTest ? t('push.sending') : t('settings.sendTestSms') }}</button>
           </div>
         </div>
       </section>

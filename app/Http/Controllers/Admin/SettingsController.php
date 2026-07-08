@@ -2,8 +2,10 @@
 
 namespace App\Http\Controllers\Admin;
 
+use App\Actions\ToggleManagerBannerPermissionAction;
 use App\Actions\ToggleManagerNewsPermissionAction;
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Admin\UpdateBoostSettingsRequest;
 use App\Http\Requests\Admin\UpdateLocalizationRequest;
 use App\Http\Requests\Admin\UpdateManagerPermissionsRequest;
 use App\Models\ComplaintReason;
@@ -22,17 +24,33 @@ class SettingsController extends Controller
         return Inertia::render('Settings/Index', [
             'monitoring'         => $monitoring->getStatus(),
             'canManageNews'      => (bool) Setting::get('manager_can_manage_news', false),
+            'canManageBanners'   => (bool) Setting::get('manager_can_manage_banners', false),
             'rejectionReasons'   => RejectionReason::where('type', 'listing')->get(),
             'complaintReasons'   => ComplaintReason::all(),
             'ownLocale'          => Auth::user()->locale,
             'defaultAppLocale'   => Setting::get('default_app_locale', 'ru'),
+            'boostIntervalHours' => (int) Setting::get('boost_interval_hours', 24),
             'smsStatus'          => $smsStatus->resolve(),
         ]);
     }
 
-    public function updateManagerPermissions(UpdateManagerPermissionsRequest $request, ToggleManagerNewsPermissionAction $action)
+    public function updateBoostSettings(UpdateBoostSettingsRequest $request)
     {
-        $action->execute($request->boolean('can_manage_news'));
+        Setting::set('boost_interval_hours', (string) $request->validated('boost_interval_hours'));
+
+        return back()->with('toast', ['type' => 'success', 'message' => __('messages.boost_settings_updated')]);
+    }
+
+    public function updateManagerPermissions(UpdateManagerPermissionsRequest $request, ToggleManagerNewsPermissionAction $newsAction, ToggleManagerBannerPermissionAction $bannerAction)
+    {
+        // Каждый тумблер на странице шлёт только своё поле — обновляем лишь то,
+        // что реально пришло, чтобы не затирать соседний флаг значением по умолчанию.
+        if ($request->has('can_manage_news')) {
+            $newsAction->execute($request->boolean('can_manage_news'));
+        }
+        if ($request->has('can_manage_banners')) {
+            $bannerAction->execute($request->boolean('can_manage_banners'));
+        }
 
         return back()->with('toast', ['type' => 'success', 'message' => __('messages.manager_permission_updated')]);
     }

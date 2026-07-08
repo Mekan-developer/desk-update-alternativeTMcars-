@@ -61,3 +61,20 @@ it('returns monitoring JSON only to admin', function () {
     actingAsSettingsRole('manager');
     $this->get(route('settings.monitoring'))->assertForbidden();
 });
+
+it('lets admin update the boost interval and validates it', function () {
+    actingAsSettingsRole('admin');
+
+    $this->patch(route('settings.boost'), ['boost_interval_hours' => 48])->assertRedirect();
+    expect((int) Setting::get('boost_interval_hours'))->toBe(48);
+
+    // Ноль/пусто отклоняются валидацией
+    $this->patch(route('settings.boost'), ['boost_interval_hours' => 0])
+        ->assertSessionHasErrors('boost_interval_hours');
+});
+
+it('forbids manager from changing the boost interval', function () {
+    actingAsSettingsRole('manager');
+
+    $this->patch(route('settings.boost'), ['boost_interval_hours' => 12])->assertForbidden();
+});
