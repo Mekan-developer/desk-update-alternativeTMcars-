@@ -28,13 +28,13 @@ class ChatController extends Controller
         return Inertia::render('Chat/Show', [
             'chatUser' => $user,
             'messages' => $this->chatService->messages($user->id),
-            'dialogs'  => $this->chatService->dialogs(),
+            'dialogs'  => $this->chatService->dialogsList(),
         ]);
     }
 
     public function reply(ChatReplyRequest $request, User $user)
     {
-        $this->chatService->reply($user, $request->validated('content'));
+        $this->chatService->reply($user, $request->user(), $request->validated('text'));
 
         return back();
     }

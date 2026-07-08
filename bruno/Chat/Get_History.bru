@@ -1,0 +1,32 @@
+meta {
+  name: История переписки с поддержкой
+  type: http
+  seq: 1
+}
+
+get {
+  url: {{base_url}}/v1/chat
+  body: none
+}
+
+headers {
+  Accept: application/json
+  Accept-Language: ru
+  Authorization: Bearer {{token}}
+}
+
+docs {
+  Требует токен — сначала выполни Auth/Send_Code, потом Auth/Verify_Code
+  (код смотри в storage/logs/laravel.log), токен сохранится в {{token}} автоматически.
+  Возвращает весь диалог пользователя с админом по возрастанию даты.
+}
+
+tests {
+  test("status is 200", function() {
+    expect(res.getStatus()).to.equal(200);
+  });
+
+  test("data is an array", function() {
+    expect(res.getBody().data).to.be.an('array');
+  });
+}

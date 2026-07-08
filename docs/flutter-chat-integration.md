@@ -1,0 +1,111 @@
+# Чат с поддержкой — интеграция для Flutter
+
+Один диалог пользователь ↔ админ. Отправка сообщений — обычный REST, получение новых сообщений в реальном времени — через WebSocket (Laravel Reverb, протокол Pusher).
+
+## 1. REST API (отправка, история, прочитано)
+
+Базовый URL: `http://192.168.31.64:8000/api/v1` (dev/LAN). Авторизация — Sanctum, `Authorization: Bearer {token}` (токен получается через `POST /auth/verify` после SMS-логина).
+
+| Метод | Путь | Что делает |
+|---|---|---|
+| GET | `/chat` | Вся история диалога, по возрастанию даты |
+| POST | `/chat` | Отправить сообщение. Body: `{"text": "..."}`, максимум 5000 символов |
+| PATCH | `/chat/read` | Пометить ответы админа прочитанными (вызывать при открытии экрана чата) |
+
+Формат ответа сообщения:
+```json
+{
+  "id": 12,
+  "sender": "user",       // "user" | "admin"
+  "text": "Здравствуйте, у меня вопрос",
+  "is_read": false,
+  "created_at": "2026-07-08T11:35:54.000000Z"
+}
+```
+
+Полная автогенерированная документация всей API (примеры запросов на нескольких языках, Postman-коллекция, OpenAPI) — `http://192.168.31.64:8000/docs`.
+
+## 2. Реалтайм (WebSocket через Reverb)
+
+Reverb говорит по протоколу **Pusher** — со стороны Flutter используйте пакет **[`pusher_channels_flutter`](https://pub.dev/packages/pusher_channels_flutter)** (или любой другой Pusher-совместимый клиент). Отдельного Flutter-пакета под Laravel Echo нет — Echo это JS-библиотека для браузера.
+
+### Параметры подключения (dev/LAN)
+
+```
+host   : 192.168.31.64
+port   : 8080
+scheme : ws   (не TLS — это dev-окружение, см. примечание про прод ниже)
+appKey : iw3zr7bdeoggulqsntg3
+```
+
+`appKey` — публичный идентификатор, его можно зашивать в приложение. **`REVERB_APP_SECRET` из `.env` никогда не передавайте на клиент** — им подписываются ответы авторизации канала только на сервере.
+
+### Канал и событие
+
+- Приватный канал: **`private-chat.{user_id}`**, где `user_id` — id **текущего залогиненного пользователя** (берётся из `GET /profile`). Подписаться на чужой канал нельзя — сервер это проверяет и отклонит (проверено: чужой `user_id` → 403).
+- Событие: **`new-message`** — слушать это имя как есть, без точки в начале (`.new-message` — это специфика Laravel Echo для браузера, к чистому Pusher-клиенту не относится).
+- Payload события — тот же формат, что и в REST-ответе (`id`, `user_id`, `text`, `sender`, `is_read`, `created_at`).
+
+### Авторизация приватного канала (важно — это единственная нетривиальная часть)
+
+Приватные Pusher/Reverb-каналы требуют, чтобы клиент подтвердил право на подписку через HTTP-запрос до открытия канала. Для мобильных клиентов на Sanctum-токенах в проекте есть отдельный эндпоинт:
+
+```
+POST http://192.168.31.64:8000/api/broadcasting/auth
+Headers:
+  Authorization: Bearer {sanctum_token}
+  Accept: application/json
+Body (form-urlencoded, подставляет сама библиотека):
+  socket_id=<из текущего WS-соединения>
+  channel_name=private-chat.{user_id}
+```
+
+Ответ: `{"auth": "iw3zr7bdeoggulqsntg3:<подпись>"}`.
+
+Это **не** тот же самый `/broadcasting/auth` (без `/api`), который использует сессионная админка — у мобильного своя версия под Sanctum, специально для этого добавлена.
+
+В `pusher_channels_flutter` это настраивается через **свой authorizer** (в разных версиях пакета может называться по-разному — `onAuthorizer` / кастомный `PusherAuth` — смотрите актуальный README пакета), в котором нужно самому сделать POST на `/api/broadcasting/auth` с заголовком `Authorization: Bearer <token>` и вернуть библиотеке JSON из ответа. Псевдокод:
+
+```dart
+final pusher = PusherChannelsFlutter.getInstance();
+
+await pusher.init(
+  apiKey: "iw3zr7bdeoggulqsntg3",
+  cluster: null, // Reverb — не облачный Pusher, cluster не нужен
+  useTLS: false, // true + wss в проде
+  host: "192.168.31.64",
+  wsPort: 8080,
+  onAuthorizer: (channelName, socketId, options) async {
+    final token = await getSavedSanctumToken();
+    final response = await http.post(
+      Uri.parse("http://192.168.31.64:8000/api/broadcasting/auth"),
+      headers: {
+        "Authorization": "Bearer $token",
+        "Accept": "application/json",
+      },
+      body: {"socket_id": socketId, "channel_name": channelName},
+    );
+    return jsonDecode(response.body); // {"auth": "..."}
+  },
+);
+
+await pusher.subscribe(channelName: "private-chat.$myUserId");
+pusher.onEvent = (event) {
+  if (event.eventName == "new-message") {
+    final data = jsonDecode(event.data);
+    // data.sender == "admin" → показать входящее сообщение в UI
+  }
+};
+```
+
+Сверьте точные имена параметров/колбэков с текущей версией пакета в `pubspec.yaml` — API `pusher_channels_flutter` между мажорными версиями менялось.
+
+### Рекомендуемая надёжность (WS может отваливаться — фон, смена сети)
+
+- При входе на экран чата и при каждом переподключении WS — сразу дёргать `GET /chat`, чтобы синхронизировать историю (WS только для «живых» апдейтов, не единственный источник правды).
+- При открытии экрана чата — вызывать `PATCH /chat/read`.
+- Если WS недоступен (например, сеть не пускает порт 8080) — приложение всё равно полностью работает через REST, просто без мгновенного обновления; можно на этот случай сделать fallback-поллинг `GET /chat` раз в 10–15 сек, пока экран чата открыт.
+
+### Прод-примечание
+
+Сейчас всё поднято на dev-окружении (`ws://192.168.31.64:8080`, без TLS). На проде Reverb обычно ставят за Nginx/Caddy с реальным доменом и TLS-терминацией, и тогда это будет `wss://chat.example.com` (порт 443, `useTLS: true`). Когда появится прод-домен — эти три параметра (`host`, `port`, `useTLS`) единственное, что поменяется, остальное (канал, событие, авторизация) — без изменений.

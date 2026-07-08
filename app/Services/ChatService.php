@@ -20,18 +20,41 @@ class ChatService
         return $this->chatRepository->getDialogs();
     }
 
+    /**
+     * Плоский список диалогов для сайдбара страницы Chat/Show (без пагинации).
+     */
+    public function dialogsList(): Collection
+    {
+        return $this->chatRepository->getDialogs()->getCollection()->values();
+    }
+
     public function messages(int $userId): Collection
     {
         return $this->chatRepository->getMessages($userId);
     }
 
-    public function reply(User $user, string $content): Message
+    public function reply(User $user, User $admin, string $text): Message
     {
         $message = $this->chatRepository->createMessage([
-            'user_id'     => $user->id,
-            'sender_type' => 'admin',
-            'content'     => $content,
-            'is_read'     => false,
+            'user_id'  => $user->id,
+            'sender'   => 'admin',
+            'admin_id' => $admin->id,
+            'text'     => $text,
+            'is_read'  => false,
+        ]);
+
+        broadcast(new NewMessageEvent($message))->toOthers();
+
+        return $message;
+    }
+
+    public function sendFromUser(User $user, string $text): Message
+    {
+        $message = $this->chatRepository->createMessage([
+            'user_id' => $user->id,
+            'sender'  => 'user',
+            'text'    => $text,
+            'is_read' => false,
         ]);
 
         broadcast(new NewMessageEvent($message))->toOthers();
@@ -41,7 +64,12 @@ class ChatService
 
     public function markRead(int $userId): void
     {
-        $this->chatRepository->markAsRead($userId);
+        $this->chatRepository->markAsRead($userId, 'user');
+    }
+
+    public function markReadByUser(int $userId): void
+    {
+        $this->chatRepository->markAsRead($userId, 'admin');
     }
 
     public function countUnread(): int

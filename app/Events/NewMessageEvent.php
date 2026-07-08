@@ -29,10 +29,12 @@ class NewMessageEvent implements ShouldBroadcast
     public function broadcastWith(): array
     {
         return [
-            'id'          => $this->message->id,
-            'content'     => $this->message->content,
-            'sender_type' => $this->message->sender_type,
-            'created_at'  => $this->message->created_at->toISOString(),
+            'id'         => $this->message->id,
+            'user_id'    => $this->message->user_id,
+            'text'       => $this->message->text,
+            'sender'     => $this->message->sender,
+            'is_read'    => $this->message->is_read,
+            'created_at' => $this->message->created_at->toISOString(),
         ];
     }
 }

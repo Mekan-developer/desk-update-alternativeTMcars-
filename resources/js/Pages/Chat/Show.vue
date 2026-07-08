@@ -1,14 +1,31 @@
 <script setup>
-import { ref, nextTick, onMounted } from 'vue'
+import { ref, nextTick, onMounted, onUnmounted } from 'vue'
 import { Link, router, useForm } from '@inertiajs/vue3'
+import { useI18n } from 'vue-i18n'
 import AppLayout from '@/Layouts/AppLayout.vue'
+
+const { t } = useI18n()
 
 const props = defineProps({ chatUser: Object, messages: Array, dialogs: Array })
 
-const replyText  = ref('')
-const messagesEl = ref(null)
+const replyText     = ref('')
+const messagesEl    = ref(null)
+const localMessages = ref([...(props.messages ?? [])])
 
-onMounted(() => scrollToBottom())
+onMounted(() => {
+    scrollToBottom()
+
+    window.Echo.private(`chat.${props.chatUser.id}`).listen('.new-message', (e) => {
+        if (e.sender !== 'user') return
+        localMessages.value.push(e)
+        scrollToBottom()
+        router.patch(route('chat.read', props.chatUser.id), {}, { preserveScroll: true, preserveState: true, only: [] })
+    })
+})
+
+onUnmounted(() => {
+    window.Echo.leave(`chat.${props.chatUser.id}`)
+})
 
 function scrollToBottom() {
     nextTick(() => {
@@ -38,13 +55,13 @@ function formatDate2(d) {
 
 <template>
   <AppLayout>
-    <template #header>Чат</template>
+    <template #header>{{ t('nav.chat') }}</template>
 
     <div class="flex h-[calc(100vh-136px)] rounded-card overflow-hidden shadow-soft">
       <!-- Dialogs sidebar -->
       <div class="w-[300px] flex-shrink-0 bg-white border-r border-line dark:bg-dcard dark:border-dline overflow-y-auto">
         <div class="px-4 py-3 border-b border-line dark:border-dline">
-          <span class="text-[13px] font-extrabold text-ink dark:text-slate-100">Диалоги</span>
+          <span class="text-[13px] font-extrabold text-ink dark:text-slate-100">{{ t('chat.dialogs') }}</span>
         </div>
         <div class="divide-y divide-line dark:divide-dline">
           <Link
@@ -77,14 +94,14 @@ function formatDate2(d) {
             <div class="text-[12px] font-data text-muted">{{ chatUser.phone }}</div>
           </div>
           <div class="ml-auto">
-            <Link :href="route('users.show', chatUser.id)" class="text-[12px] font-bold text-blue hover:underline">Профиль →</Link>
+            <Link :href="route('users.show', chatUser.id)" class="text-[12px] font-bold text-blue hover:underline">{{ t('chat.profileLink') }}</Link>
           </div>
         </div>
 
         <!-- Messages -->
         <div ref="messagesEl" class="flex-1 overflow-y-auto p-5 space-y-3">
           <div
-            v-for="msg in messages" :key="msg.id"
+            v-for="msg in localMessages" :key="msg.id"
             class="flex"
             :class="msg.sender === 'admin' ? 'justify-end' : 'justify-start'"
           >
@@ -98,7 +115,7 @@ function formatDate2(d) {
               <div class="mt-1 text-[10px] opacity-60">{{ formatTime(msg.created_at) }}</div>
             </div>
           </div>
-          <div v-if="!messages?.length" class="text-center text-[13px] text-muted py-8">Нет сообщений</div>
+          <div v-if="!localMessages?.length" class="text-center text-[13px] text-muted py-8">{{ t('chat.noMessages') }}</div>
         </div>
 
         <!-- Input -->
@@ -106,13 +123,13 @@ function formatDate2(d) {
           <input
             v-model="replyText"
             @keydown.enter.prevent="sendReply"
-            placeholder="Введите сообщение…"
+            :placeholder="t('chat.inputPlaceholder')"
             class="flex-1 rounded-btn border-2 border-line bg-surface px-4 py-2.5 text-[13px] font-semibold outline-none focus:border-blue dark:bg-dbg dark:border-dline dark:text-slate-200 transition"
           />
           <button
             @click="sendReply"
             class="rounded-btn bg-blue px-5 py-2.5 text-[13px] font-bold text-white hover:bg-blue-dark transition"
-          >Отправить</button>
+          >{{ t('actions.send') }}</button>
         </div>
       </div>
     </div>

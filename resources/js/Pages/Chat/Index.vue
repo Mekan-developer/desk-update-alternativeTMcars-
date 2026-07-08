@@ -1,7 +1,10 @@
 <script setup>
 import { Link } from '@inertiajs/vue3'
+import { useI18n } from 'vue-i18n'
 import AppLayout from '@/Layouts/AppLayout.vue'
 import Pagination from '@/Components/Pagination.vue'
+
+const { t } = useI18n()
 
 defineProps({ dialogs: Object })
 
@@ -13,11 +16,11 @@ function formatDate(d) {
 
 <template>
   <AppLayout>
-    <template #header>Чат</template>
+    <template #header>{{ t('nav.chat') }}</template>
 
     <div class="rounded-card bg-white shadow-soft dark:bg-dcard overflow-hidden">
       <div class="px-[22px] py-[18px] border-b border-line dark:border-dline">
-        <span class="text-[15px] font-extrabold text-ink dark:text-slate-100">Диалоги с пользователями</span>
+        <span class="text-[15px] font-extrabold text-ink dark:text-slate-100">{{ t('chat.dialogsWithUsers') }}</span>
       </div>
       <div class="divide-y divide-line dark:divide-dline">
         <Link
@@ -34,7 +37,7 @@ function formatDate(d) {
               <span class="text-[13px] font-bold text-ink dark:text-slate-200">{{ dialog.name || dialog.phone }}</span>
               <span class="text-[11px] font-data text-muted flex-shrink-0">{{ formatDate(dialog.messages?.[0]?.created_at) }}</span>
             </div>
-            <p class="mt-0.5 truncate text-[12px] text-muted">{{ dialog.messages?.[0]?.text || 'Нет сообщений' }}</p>
+            <p class="mt-0.5 truncate text-[12px] text-muted">{{ dialog.messages?.[0]?.text || t('chat.noMessages') }}</p>
           </div>
           <span
             v-if="dialog.unread_count > 0"
@@ -42,7 +45,7 @@ function formatDate(d) {
           >{{ dialog.unread_count }}</span>
         </Link>
         <div v-if="!dialogs.data?.length" class="px-5 py-10 text-center text-[13px] text-muted">
-          Нет диалогов
+          {{ t('chat.noDialogs') }}
         </div>
       </div>
       <Pagination :links="dialogs.links" />

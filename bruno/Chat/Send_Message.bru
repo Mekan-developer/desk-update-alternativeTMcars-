@@ -1,0 +1,42 @@
+meta {
+  name: Отправить сообщение в поддержку
+  type: http
+  seq: 2
+}
+
+post {
+  url: {{base_url}}/v1/chat
+  body: json
+}
+
+headers {
+  Accept: application/json
+  Accept-Language: ru
+  Authorization: Bearer {{token}}
+}
+
+body:json {
+  {
+    "text": "Здравствуйте, у меня вопрос по объявлению"
+  }
+}
+
+docs {
+  Отправляет сообщение от лица текущего пользователя (sender=user).
+  Событие NewMessageEvent транслируется в реальном времени в приватный канал
+  Reverb private-chat.{user_id} — если открыть в это время /chat в админке
+  (и BROADCAST_CONNECTION=reverb), сообщение появится там без перезагрузки страницы.
+}
+
+tests {
+  test("status is 201", function() {
+    expect(res.getStatus()).to.equal(201);
+  });
+
+  test("message persisted with sender=user", function() {
+    const data = res.getBody().data;
+    expect(data.sender).to.equal('user');
+    expect(data.text).to.equal('Здравствуйте, у меня вопрос по объявлению');
+    expect(data.is_read).to.equal(false);
+  });
+}

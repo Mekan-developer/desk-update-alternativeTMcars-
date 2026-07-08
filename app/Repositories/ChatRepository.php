@@ -14,7 +14,7 @@ class ChatRepository implements ChatRepositoryInterface
     {
         return User::where('role', 'user')
             ->whereHas('messages')
-            ->withCount(['messages as unread_count' => fn($q) => $q->where('is_read', false)->where('sender_type', 'user')])
+            ->withCount(['messages as unread_count' => fn($q) => $q->where('is_read', false)->where('sender', 'user')])
             ->with(['messages' => fn($q) => $q->latest()->limit(1)])
             ->latest('updated_at')
             ->paginate($perPage);
@@ -30,17 +30,17 @@ class ChatRepository implements ChatRepositoryInterface
         return Message::create($data);
     }
 
-    public function markAsRead(int $userId): void
+    public function markAsRead(int $userId, string $sender): void
     {
         Message::where('user_id', $userId)
-            ->where('sender_type', 'user')
+            ->where('sender', $sender)
             ->where('is_read', false)
             ->update(['is_read' => true]);
     }
 
     public function countUnread(): int
     {
-        return Message::where('sender_type', 'user')->where('is_read', false)
+        return Message::where('sender', 'user')->where('is_read', false)
             ->distinct('user_id')->count('user_id');
     }
 }

@@ -1,0 +1,29 @@
+meta {
+  name: Отметить ответы админа прочитанными
+  type: http
+  seq: 3
+}
+
+patch {
+  url: {{base_url}}/v1/chat/read
+  body: none
+}
+
+headers {
+  Accept: application/json
+  Accept-Language: ru
+  Authorization: Bearer {{token}}
+}
+
+docs {
+  Помечает все сообщения sender=admin для текущего пользователя как is_read=true
+  (симметрично тому, как открытие /chat/{user} в админке помечает прочитанными
+  сообщения sender=user). Проверить эффект — снова вызвать Get_History и
+  убедиться, что is_read=true у сообщений от админа.
+}
+
+tests {
+  test("status is 200", function() {
+    expect(res.getStatus()).to.equal(200);
+  });
+}
