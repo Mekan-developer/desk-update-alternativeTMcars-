@@ -4,6 +4,7 @@ namespace App\Http\Resources\Api\V1;
 
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
+use Illuminate\Support\Facades\Storage;
 
 class NewsResource extends JsonResource
 {
@@ -15,7 +16,7 @@ class NewsResource extends JsonResource
             'title_tk' => $this->title_tk,
             'content_ru' => $this->content_ru,
             'content_tk' => $this->content_tk,
-            'image' => $this->image ? '/storage/'.$this->image : null,
+            'image' => $this->image ? Storage::disk('public')->url($this->image) : null,
             'type' => $this->type,
             'ad_link_type' => $this->ad_link_type,
             'ad_link_id' => $this->ad_link_id,
