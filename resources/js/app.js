@@ -6,6 +6,7 @@ import { resolvePageComponent } from 'laravel-vite-plugin/inertia-helpers';
 import { createApp, h } from 'vue';
 import { ZiggyVue } from '../../vendor/tightenco/ziggy';
 import { i18n } from './i18n';
+import { clickOutside } from './directives/clickOutside';
 
 const appName = import.meta.env.VITE_APP_NAME || 'Доска объявлений';
 
@@ -21,6 +22,7 @@ createInertiaApp({
             .use(plugin)
             .use(ZiggyVue)
             .use(i18n)
+            .directive('click-outside', clickOutside)
             .mount(el);
     },
     progress: {

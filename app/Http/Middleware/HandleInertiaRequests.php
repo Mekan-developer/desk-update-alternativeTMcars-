@@ -8,6 +8,7 @@ use App\Models\Message;
 use App\Models\Review;
 use App\Models\User;
 use App\Models\Video;
+use App\Services\NotificationService;
 use Illuminate\Http\Request;
 use Inertia\Middleware;
 
@@ -34,6 +35,9 @@ class HandleInertiaRequests extends Middleware
                 'newComplaints'   => Complaint::where('status', 'new')->count(),
                 'pendingReviews'  => Review::where('status', 'pending')->count(),
             ] : [],
+            'notifications' => fn () => $request->user()
+                ? app(NotificationService::class)->forUser($request->user())
+                : [],
         ];
     }
 }

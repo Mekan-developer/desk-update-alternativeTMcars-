@@ -25,10 +25,19 @@ watch(collapsed, v => localStorage.setItem('sb', v ? '1' : '0'))
 function setLang(l) {
     locale.value = l
     localStorage.setItem('lang', l)
+    // Синхронизируем с Laravel-сессией: flash-сообщения и валидация придут на том же языке
+    window.axios?.patch(route('locale.update'), { locale: l }).catch(() => {})
 }
 
 // ── Shared data ────────────────────────────────────────────────────────────
 const page = usePage()
+
+// Язык, сохранённый в профиле, приоритетнее localStorage (например, вход с другого устройства)
+const serverLocale = page.props.auth?.user?.locale
+if (serverLocale && ['ru', 'tk'].includes(serverLocale) && serverLocale !== locale.value) {
+    locale.value = serverLocale
+    localStorage.setItem('lang', serverLocale)
+}
 const user   = computed(() => page.props.auth?.user)
 const counts = computed(() => page.props.counts || {})
 
@@ -40,27 +49,44 @@ const initials = computed(() => {
 })
 
 const roleLabel = computed(() => user.value?.role ? t(`role.${user.value.role}`) : '')
-const notificationsTotal = computed(() => Object.values(counts.value).reduce((sum, n) => sum + (n || 0), 0))
+const notificationsOpen = ref(false)
+
+// ── Notifications (индивидуальные, с dismiss на пользователя) ───────────────
+const dismissedLocally = ref(new Set())
+const notificationItems = computed(() =>
+    (page.props.notifications || [])
+        .filter(n => !dismissedLocally.value.has(n.key))
+        .map(n => ({ ...n, text: t(`notifications.${n.type}`, { value: n.label }) }))
+)
+const notificationsTotal = computed(() => notificationItems.value.length)
+
+function openNotification(item) {
+    dismissedLocally.value.add(item.key)
+    window.axios?.post(route('notifications.dismiss'), { key: item.key }).catch(() => {})
+    notificationsOpen.value = false
+    router.visit(route(item.routeName, item.routeParam ?? undefined))
+}
 
 // ── Menu ───────────────────────────────────────────────────────────────────
 const sections = computed(() => [
-    { title: 'ГЛАВНОЕ', eyebrow: 'Главное', items: [
+    { title: t('layout.sectionMain').toUpperCase(), eyebrow: t('layout.sectionMain'), items: [
         { label: t('nav.dashboard'),   routeName: 'dashboard',         icon: 'grid' },
         { label: t('nav.users'),       routeName: 'users.index',       icon: 'users',   badge: 'newUsers' },
         { label: t('nav.listings'),    routeName: 'listings.index',    icon: 'listing', badge: 'pendingListings' },
         { label: t('nav.videos'),      routeName: 'videos.index',      icon: 'video',   badge: 'pendingVideos' },
         { label: t('nav.chat'),        routeName: 'chat.index',        icon: 'chat',    badge: 'unreadChats' },
     ]},
-    { title: 'КОНТЕНТ', eyebrow: 'Контент', items: [
+    { title: t('layout.sectionContent').toUpperCase(), eyebrow: t('layout.sectionContent'), items: [
         { label: t('nav.categories'),  routeName: 'categories.index',  icon: 'tag' },
         { label: t('nav.regions'),     routeName: 'regions.index',     icon: 'pin' },
         { label: t('nav.news'),        routeName: 'news.index',        icon: 'news' },
+        { label: t('nav.banners'),     routeName: 'banners.index',     icon: 'layers' },
     ]},
-    { title: 'МОДЕРАЦИЯ', eyebrow: 'Модерация', items: [
+    { title: t('layout.sectionModeration').toUpperCase(), eyebrow: t('layout.sectionModeration'), items: [
         { label: t('nav.complaints'),  routeName: 'complaints.index',  icon: 'flag',  badge: 'newComplaints' },
         { label: t('nav.reviews'),     routeName: 'reviews.index',     icon: 'star',  badge: 'pendingReviews' },
     ]},
-    { title: 'СИСТЕМА', eyebrow: 'Система', items: [
+    { title: t('layout.sectionSystem').toUpperCase(), eyebrow: t('layout.sectionSystem'), items: [
         { label: t('nav.tariffs'),     routeName: 'tariffs.index',     icon: 'coin' },
         { label: t('nav.statistics'), routeName: 'statistics.index',  icon: 'chart' },
         ...(user.value?.role === 'admin' ? [
@@ -98,8 +124,8 @@ function logout() {
           <Icon kind="menu" :size="17" />
         </div>
         <div v-if="!collapsed" class="flex flex-col leading-[1.18]">
-          <span class="text-[14.5px] font-bold text-[var(--sidebar-text-strong)]">Доска</span>
-          <span class="text-[11px] text-[var(--sidebar-muted)]">объявлений</span>
+          <span class="text-[14.5px] font-bold text-[var(--sidebar-text-strong)]">{{ t('layout.brandTitle') }}</span>
+          <span class="text-[11px] text-[var(--sidebar-muted)]">{{ t('layout.brandSubtitle') }}</span>
         </div>
       </div>
 
@@ -150,7 +176,7 @@ function logout() {
       <div class="flex h-[68px] flex-none items-center justify-between border-b border-[var(--card-border)] bg-[var(--card-bg)] dark:bg-[#14172A] px-[26px]">
         <div class="flex w-[280px] items-center gap-2.5 rounded-[9px] border border-[var(--field-border)] bg-[var(--field-bg)] px-3 py-2">
           <Icon kind="search" :size="16" class="text-[var(--text-muted)]" />
-          <span class="text-[13px] text-[var(--text-muted)]">Поиск по разделу…</span>
+          <span class="text-[13px] text-[var(--text-muted)]">{{ t('topbar.searchSection') }}</span>
         </div>
 
         <div class="flex items-center gap-3.5">
@@ -179,21 +205,47 @@ function logout() {
             >
               <Icon :kind="dark ? 'moon' : 'sun'" :size="17" />
             </button>
-            <span class="text-[9.5px] text-[var(--text-muted)] dark:text-white/[.42]">{{ dark ? t('topbar.lightTheme') : t('topbar.darkTheme') }}</span>
+            <span class="w-20 text-center whitespace-nowrap text-[9.5px] text-[var(--text-muted)] dark:text-white/[.42]">{{ dark ? t('topbar.lightTheme') : t('topbar.darkTheme') }}</span>
           </div>
 
           <div class="h-[30px] w-px bg-[var(--card-border)]"></div>
 
           <!-- Уведомления -->
-          <div class="flex flex-col items-center gap-1">
-            <div class="relative flex h-9 w-9 items-center justify-center rounded-[10px] text-[var(--text-secondary)] dark:text-white/[.68] hover:bg-[var(--nav-hover)] dark:hover:bg-white/[.07] transition-colors cursor-pointer">
+          <div class="relative flex flex-col items-center gap-1">
+            <button
+              @click="notificationsOpen = !notificationsOpen"
+              class="relative flex h-9 w-9 items-center justify-center rounded-[10px] text-[var(--text-secondary)] dark:text-white/[.68] hover:bg-[var(--nav-hover)] dark:hover:bg-white/[.07] transition-colors cursor-pointer"
+            >
               <Icon kind="bell" :size="17" />
               <span
                 v-if="notificationsTotal > 0"
                 class="absolute -right-1 -top-1 flex h-[15px] min-w-[15px] items-center justify-center rounded-lg border-2 border-[var(--card-bg)] dark:border-[#14172A] bg-[#F0554C] px-[3px] text-[9.5px] font-bold text-white"
               >{{ notificationsTotal }}</span>
-            </div>
-            <span class="text-[9.5px] text-[var(--text-muted)] dark:text-white/[.42]">{{ t('topbar.notifications') }}</span>
+            </button>
+            <span class="w-20 text-center whitespace-nowrap text-[9.5px] text-[var(--text-muted)] dark:text-white/[.42]">{{ t('topbar.notifications') }}</span>
+
+            <Transition name="menu">
+              <div
+                v-if="notificationsOpen"
+                v-click-outside="() => notificationsOpen = false"
+                class="absolute right-0 top-full mt-2 w-72 rounded-2xl bg-[var(--card-bg)] shadow-[var(--card-shadow)] border border-[var(--card-border)] z-50 overflow-hidden"
+              >
+                <div class="px-4 py-3 border-b border-[var(--card-border)] text-[13px] font-bold text-[var(--text)]">{{ t('topbar.notifications') }}</div>
+                <div v-if="notificationItems.length" class="max-h-80 overflow-y-auto">
+                  <button
+                    v-for="item in notificationItems"
+                    :key="item.key"
+                    type="button"
+                    @click="openNotification(item)"
+                    class="flex w-full items-center gap-2.5 px-4 py-3 text-left text-[13px] text-[var(--text)] hover:bg-[var(--nav-hover)] dark:hover:bg-white/[.07] transition-colors cursor-pointer"
+                  >
+                    <Icon :kind="item.icon" :size="16" class="flex-none text-[var(--text-secondary)]" />
+                    <span class="flex-1 truncate">{{ item.text }}</span>
+                  </button>
+                </div>
+                <div v-else class="px-4 py-6 text-center text-[12.5px] text-[var(--text-muted)]">{{ t('topbar.noNotifications') }}</div>
+              </div>
+            </Transition>
           </div>
 
           <div class="h-[30px] w-px bg-[var(--card-border)]"></div>
@@ -210,9 +262,9 @@ function logout() {
                 </div>
                 <span class="absolute -bottom-0.5 -right-0.5 h-[10px] w-[10px] rounded-full bg-[#4ADE80] border-2 border-[var(--card-bg)] dark:border-[#14172A]"></span>
               </div>
-              <div class="hidden flex-col items-start leading-[1.25] sm:flex">
-                <span class="text-[13px] font-bold text-[var(--text)] dark:text-[#F5F5FA]">{{ user?.name }}</span>
-                <span class="text-[10.5px] text-[var(--text-muted)] dark:text-white/[.42]">{{ roleLabel }}</span>
+              <div class="hidden w-[120px] flex-col items-start leading-[1.25] sm:flex">
+                <span class="block w-full truncate text-[13px] font-bold text-[var(--text)] dark:text-[#F5F5FA]">{{ user?.name }}</span>
+                <span class="block w-full truncate text-[10.5px] text-[var(--text-muted)] dark:text-white/[.42]">{{ roleLabel }}</span>
               </div>
               <Icon kind="chevronDown" :size="14" class="text-[var(--text-muted)] dark:text-white/[.42]" />
             </button>
@@ -232,7 +284,7 @@ function logout() {
                   class="flex w-full items-center gap-2 px-4 py-3 text-[13px] font-semibold text-red hover:bg-red/5 transition"
                 >
                   <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-width="2" d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4M16 17l5-5-5-5M21 12H9"/></svg>
-                  Выйти
+                  {{ t('topbar.logout') }}
                 </button>
               </div>
             </Transition>

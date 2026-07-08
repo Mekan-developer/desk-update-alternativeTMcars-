@@ -4,16 +4,19 @@ namespace App\Providers;
 
 use App\Models\Listing;
 use App\Observers\ListingObserver;
+use App\Repositories\BannerRepository;
 use App\Repositories\CategoryIconRepository;
 use App\Repositories\CategoryRepository;
 use App\Repositories\ChatRepository;
 use App\Repositories\ComplaintRepository;
+use App\Repositories\Interfaces\BannerRepositoryInterface;
 use App\Repositories\Interfaces\CategoryIconRepositoryInterface;
 use App\Repositories\Interfaces\CategoryRepositoryInterface;
 use App\Repositories\Interfaces\ChatRepositoryInterface;
 use App\Repositories\Interfaces\ComplaintRepositoryInterface;
 use App\Repositories\Interfaces\ListingRepositoryInterface;
 use App\Repositories\Interfaces\NewsRepositoryInterface;
+use App\Repositories\Interfaces\NotificationRepositoryInterface;
 use App\Repositories\Interfaces\RegionRepositoryInterface;
 use App\Repositories\Interfaces\ReviewRepositoryInterface;
 use App\Repositories\Interfaces\SmsCodeRepositoryInterface;
@@ -22,6 +25,7 @@ use App\Repositories\Interfaces\UserRepositoryInterface;
 use App\Repositories\Interfaces\VideoRepositoryInterface;
 use App\Repositories\ListingRepository;
 use App\Repositories\NewsRepository;
+use App\Repositories\NotificationRepository;
 use App\Repositories\RegionRepository;
 use App\Repositories\ReviewRepository;
 use App\Repositories\SmsCodeRepository;
@@ -49,6 +53,8 @@ class AppServiceProvider extends ServiceProvider
         $this->app->bind(ComplaintRepositoryInterface::class, ComplaintRepository::class);
         $this->app->bind(ReviewRepositoryInterface::class, ReviewRepository::class);
         $this->app->bind(SmsCodeRepositoryInterface::class, SmsCodeRepository::class);
+        $this->app->bind(NotificationRepositoryInterface::class, NotificationRepository::class);
+        $this->app->bind(BannerRepositoryInterface::class, BannerRepository::class);
 
         // Dev: OTP пишется в laravel.log; прод — заменить на LocalModemSmsService
         $this->app->bind(SmsSenderInterface::class, LogSmsService::class);
