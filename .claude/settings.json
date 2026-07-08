@@ -19,7 +19,10 @@
       "Bash(npx --yes playwright --version)",
       "Bash(npm ls *)",
       "Bash(timeout 90 npx --yes playwright install chromium --with-deps)",
-      "Bash(git add *)"
+      "Bash(git add *)",
+      "Bash(git commit -m ' *)",
+      "Bash(git rm *)",
+      "Bash(git restore *)"
     ]
   }
 }
