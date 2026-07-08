@@ -18,7 +18,7 @@ class StoreTariffRequest extends FormRequest
             'boost_limit'    => 'required|integer|min:0',
             'duration_days'  => 'required|integer|min:1',
             'is_active'      => 'boolean',
-            'is_default'     => 'boolean',
+            'is_free'        => 'boolean',
         ];
     }
 }

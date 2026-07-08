@@ -34,13 +34,13 @@ class TariffRepository implements TariffRepositoryInterface
         $tariff->delete();
     }
 
-    public function getDefault(): ?Tariff
+    public function getFree(): ?Tariff
     {
-        return Tariff::where('is_default', true)->first();
+        return Tariff::where('is_free', true)->first();
     }
 
-    public function clearDefault(): void
+    public function clearFree(): void
     {
-        Tariff::where('is_default', true)->update(['is_default' => false]);
+        Tariff::where('is_free', true)->update(['is_free' => false]);
     }
 }

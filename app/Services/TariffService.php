@@ -30,13 +30,35 @@ class TariffService
             return ['listings' => 0, 'videos' => 0, 'boosts' => 0];
         }
 
-        $usedListings = $this->listingRepository->countActiveByUser($user->id);
+        // Занятая квота считается так же, как при публикации (CheckTariffLimitAction):
+        // pending + approved занимают место, поднятые — квоту поднятий.
+        $usedListings = $this->listingRepository->countByUserAndStatuses($user->id, ['pending', 'approved']);
         $usedVideos   = $this->videoRepository->countActiveByUser($user->id);
+        $usedBoosts   = $this->listingRepository->countBoostedByUser($user->id);
 
         return [
             'listings' => max(0, $tariff->listings_limit - $usedListings),
             'videos'   => max(0, $tariff->videos_limit - $usedVideos),
-            'boosts'   => $tariff->boost_limit,
+            'boosts'   => max(0, $tariff->boost_limit - $usedBoosts),
+        ];
+    }
+
+    /**
+     * Текущий тариф пользователя + остаток лимитов — для экрана тарифа
+     * в мобильном приложении (ТЗ §6).
+     *
+     * @return array{tariff: Tariff|null, expires_at: \Illuminate\Support\Carbon|null, remaining: array}
+     */
+    public function currentForUser(User $user): array
+    {
+        $tariff = $user->activeTariff();
+
+        return [
+            // Срок действия показываем только для платного тарифа; на бесплатном
+            // (в т.ч. когда платный истёк и activeTariff вернул бесплатный) — бессрочно.
+            'tariff'     => $tariff,
+            'expires_at' => ($tariff && ! $tariff->is_free) ? $user->tariff_ends_at : null,
+            'remaining'  => $this->getRemainingLimits($user),
         ];
     }
 
@@ -50,16 +72,16 @@ class TariffService
 
     public function store(array $data): Tariff
     {
-        if (! empty($data['is_default']) && $data['is_default']) {
-            $this->tariffRepository->clearDefault();
+        if (! empty($data['is_free'])) {
+            $this->tariffRepository->clearFree();
         }
         return $this->tariffRepository->create($data);
     }
 
     public function update(Tariff $tariff, array $data): Tariff
     {
-        if (! empty($data['is_default']) && $data['is_default']) {
-            $this->tariffRepository->clearDefault();
+        if (! empty($data['is_free'])) {
+            $this->tariffRepository->clearFree();
         }
         return $this->tariffRepository->update($tariff, $data);
     }

@@ -1,0 +1,28 @@
+meta {
+  name: Мой тариф и остаток лимитов
+  type: http
+  seq: 7
+}
+
+get {
+  url: {{base_url}}/v1/profile/tariff
+  body: none
+}
+
+headers {
+  Accept: application/json
+  Accept-Language: ru
+  Authorization: Bearer {{token}}
+}
+
+tests {
+  test("status is 200", function() {
+    expect(res.getStatus()).to.equal(200);
+  });
+
+  test("has remaining limits", function() {
+    expect(res.getBody().data.remaining).to.have.property('listings');
+    expect(res.getBody().data.remaining).to.have.property('videos');
+    expect(res.getBody().data.remaining).to.have.property('boosts');
+  });
+}

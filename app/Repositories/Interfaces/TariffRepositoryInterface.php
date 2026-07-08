@@ -12,6 +12,6 @@ interface TariffRepositoryInterface
     public function create(array $data): Tariff;
     public function update(Tariff $tariff, array $data): Tariff;
     public function delete(Tariff $tariff): void;
-    public function getDefault(): ?Tariff;
-    public function clearDefault(): void;
+    public function getFree(): ?Tariff;
+    public function clearFree(): void;
 }
