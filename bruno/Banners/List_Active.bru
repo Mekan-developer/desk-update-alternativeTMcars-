@@ -1,0 +1,54 @@
+meta {
+  name: Активные баннеры (промо-карусель)
+  type: http
+  seq: 1
+}
+
+get {
+  url: {{base_url}}/v1/banners
+  body: none
+}
+
+headers {
+  Accept: application/json
+}
+
+docs {
+  Публичный endpoint, токен не нужен.
+
+  Возвращает только баннеры, у которых:
+  - is_active = true
+  - starts_at пуст ИЛИ starts_at <= сейчас
+  - ends_at пуст ИЛИ ends_at >= сейчас
+
+  Сортировка — по sort_order. Пагинации нет, отдаётся весь список сразу
+  (карусель в мобильном приложении).
+
+  Поля: id, title_ru, title_tk, image, link_type, link_url, listing_id,
+  starts_at, ends_at.
+  link_type/link_url/listing_id определяют, куда ведёт баннер при тапе
+  (например, на объявление или на внешнюю ссылку) — конкретные значения
+  зависят от того, что выбрано в админке при создании баннера.
+}
+
+tests {
+  test("status is 200", function() {
+    expect(res.getStatus()).to.equal(200);
+  });
+
+  test("response has data array", function() {
+    expect(res.getBody()).to.have.property('data');
+  });
+
+  test("banner has expected fields", function() {
+    const body = res.getBody();
+    if (body.data.length > 0) {
+      const banner = body.data[0];
+      expect(banner).to.have.property('id');
+      expect(banner).to.have.property('title_ru');
+      expect(banner).to.have.property('title_tk');
+      expect(banner).to.have.property('image');
+      expect(banner).to.have.property('link_type');
+    }
+  });
+}

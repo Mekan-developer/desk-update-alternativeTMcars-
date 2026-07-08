@@ -14,7 +14,11 @@ class UpdateManagerPermissionsRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'can_manage_news' => 'required|boolean',
+            // Каждый тумблер шлёт PATCH только со своим полем — оба должны
+            // оставаться независимо опциональными, иначе один тумблер будет
+            // требовать поле другого.
+            'can_manage_news'    => 'sometimes|boolean',
+            'can_manage_banners' => 'sometimes|boolean',
         ];
     }
 }
