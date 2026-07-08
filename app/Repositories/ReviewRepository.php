@@ -10,7 +10,7 @@ class ReviewRepository implements ReviewRepositoryInterface
 {
     public function paginate(array $filters, int $perPage = 25): LengthAwarePaginator
     {
-        return Review::with('user', 'reviewable')
+        return Review::with('user', 'listing', 'targetUser', 'rejectionReason')
             ->when($filters['status'] ?? null, fn($q, $s) => $q->where('status', $s))
             ->latest()
             ->paginate($perPage)
@@ -19,7 +19,12 @@ class ReviewRepository implements ReviewRepositoryInterface
 
     public function find(int $id): Review
     {
-        return Review::with('user', 'reviewable')->findOrFail($id);
+        return Review::with('user', 'listing', 'targetUser', 'rejectionReason')->findOrFail($id);
+    }
+
+    public function create(array $data): Review
+    {
+        return Review::create($data);
     }
 
     public function update(Review $review, array $data): Review

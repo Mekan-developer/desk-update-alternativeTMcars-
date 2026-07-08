@@ -84,9 +84,9 @@ function submitReject() {
                 <div class="text-xs text-muted">{{ r.user?.phone }}</div>
               </td>
               <td class="px-4 py-3">
-                <div class="max-w-[300px] line-clamp-2 text-ink dark:text-slate-200">{{ r.content }}</div>
+                <div class="max-w-[300px] line-clamp-2 text-ink dark:text-slate-200">{{ r.text }}</div>
               </td>
-              <td class="px-4 py-3 text-xs text-muted">{{ r.reviewable_type?.split('\\').pop() }} #{{ r.reviewable_id }}</td>
+              <td class="px-4 py-3 text-xs text-muted">{{ r.listing?.title || r.target_user?.name || '—' }}</td>
               <td class="px-4 py-3"><StatusBadge :status="r.status" /></td>
               <td class="px-4 py-3 text-xs text-muted">{{ new Date(r.created_at).toLocaleDateString('ru') }}</td>
               <td class="px-4 py-3">

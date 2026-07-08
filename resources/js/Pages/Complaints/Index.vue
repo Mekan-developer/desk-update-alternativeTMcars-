@@ -19,7 +19,7 @@ const filter = ref(props.filters?.status || '')
 
 const tabs = computed(() => [
     { key: '', label: t('common.all') },
-    { key: 'pending', label: t('complaints.tabPending'), count: props.counts?.pending },
+    { key: 'new', label: t('complaints.tabPending'), count: props.counts?.pending },
     { key: 'resolved', label: t('complaints.tabResolved'), count: props.counts?.resolved },
 ])
 
@@ -75,14 +75,14 @@ function resolve(c) {
               <td class="px-4 py-3">
                 <div class="max-w-[200px] truncate text-ink dark:text-slate-200">{{ c.listing?.title || '—' }}</div>
               </td>
-              <td class="px-4 py-3 text-muted">{{ c.reason?.name_ru || '—' }}</td>
+              <td class="px-4 py-3 text-muted">{{ c.complaint_reason?.name_ru || '—' }}</td>
               <td class="px-4 py-3">
                 <StatusBadge :status="c.status" />
               </td>
               <td class="px-4 py-3 text-xs text-muted">{{ new Date(c.created_at).toLocaleDateString('ru') }}</td>
               <td class="px-4 py-3 text-right">
                 <button
-                  v-if="c.status === 'pending'"
+                  v-if="c.status !== 'resolved'"
                   @click="resolve(c)"
                   class="px-3 py-1 rounded-btn bg-green-50 dark:bg-green-900/20 text-green-700 dark:text-green-400 text-xs font-bold hover:bg-green-100 transition"
                 >

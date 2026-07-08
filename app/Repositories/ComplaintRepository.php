@@ -10,7 +10,7 @@ class ComplaintRepository implements ComplaintRepositoryInterface
 {
     public function paginate(array $filters, int $perPage = 25): LengthAwarePaginator
     {
-        return Complaint::with('user', 'listing', 'reason')
+        return Complaint::with('user', 'listing', 'complaintReason')
             ->when($filters['status'] ?? null, fn($q, $s) => $q->where('status', $s))
             ->latest()
             ->paginate($perPage)
@@ -19,7 +19,12 @@ class ComplaintRepository implements ComplaintRepositoryInterface
 
     public function find(int $id): Complaint
     {
-        return Complaint::with('user', 'listing', 'reason')->findOrFail($id);
+        return Complaint::with('user', 'listing', 'complaintReason')->findOrFail($id);
+    }
+
+    public function create(array $data): Complaint
+    {
+        return Complaint::create($data);
     }
 
     public function update(Complaint $complaint, array $data): Complaint
@@ -30,6 +35,6 @@ class ComplaintRepository implements ComplaintRepositoryInterface
 
     public function countPending(): int
     {
-        return Complaint::where('status', 'pending')->count();
+        return Complaint::where('status', 'new')->count();
     }
 }
