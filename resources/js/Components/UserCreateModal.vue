@@ -1,7 +1,10 @@
 <script setup>
 import { computed, ref, watch } from 'vue'
 import { Link, useForm } from '@inertiajs/vue3'
+import { useI18n } from 'vue-i18n'
 import Icon from '@/Components/Icon.vue'
+
+const { t } = useI18n()
 
 const props = defineProps({
     open:    { type: Boolean, default: false },
@@ -78,8 +81,8 @@ const avatarInput   = ref(null)
 function pickAvatar(file) {
     avatarError.value = ''
     if (!file) return
-    if (!file.type.startsWith('image/')) { avatarError.value = 'Только изображение'; return }
-    if (file.size > 5 * 1024 * 1024)     { avatarError.value = 'Файл больше 5 МБ'; return }
+    if (!file.type.startsWith('image/')) { avatarError.value = t('userModal.onlyImage'); return }
+    if (file.size > 5 * 1024 * 1024)     { avatarError.value = t('userModal.tooBig'); return }
     form.avatar = file
     if (avatarPreview.value) URL.revokeObjectURL(avatarPreview.value)
     avatarPreview.value = URL.createObjectURL(file)
@@ -125,7 +128,7 @@ watch(() => props.open, (open) => {
         >
           <!-- Header -->
           <div class="flex items-center justify-between px-6 pt-5 pb-4" :style="{ borderBottom: '1px solid var(--card-border)' }">
-            <h2 class="text-[16px] font-extrabold">Добавить пользователя</h2>
+            <h2 class="text-[16px] font-extrabold">{{ t('userModal.title') }}</h2>
             <button
               class="flex h-8 w-8 items-center justify-center rounded-[8px] transition hover:bg-black/10 dark:hover:bg-white/10"
               :style="{ color: 'var(--text-muted)' }"
@@ -139,7 +142,7 @@ watch(() => props.open, (open) => {
           <div class="flex-1 overflow-y-auto px-6 py-5">
             <!-- 1. Телефон -->
             <label class="mb-1.5 block text-[12px] font-bold uppercase tracking-wide" :style="{ color: 'var(--text-muted)' }">
-              Телефон<span class="ml-0.5 text-red">*</span>
+              {{ t('common.phone') }}<span class="ml-0.5 text-red">*</span>
             </label>
             <div
               class="phone-box flex items-stretch overflow-hidden rounded-[10px]"
@@ -166,18 +169,18 @@ watch(() => props.open, (open) => {
               </span>
             </div>
             <p v-if="phoneCheck === 'taken'" class="mt-1.5 text-[12px] font-semibold" :style="{ color: 'var(--status-bad)' }">
-              Номер уже зарегистрирован —
-              <Link v-if="takenUserId" :href="route('users.show', takenUserId)" class="underline underline-offset-2">открыть пользователя</Link>
+              {{ t('userModal.phoneTaken') }}
+              <Link v-if="takenUserId" :href="route('users.show', takenUserId)" class="underline underline-offset-2">{{ t('userModal.openUser') }}</Link>
             </p>
             <p v-else-if="form.errors.phone" class="mt-1.5 text-[12px] font-semibold" :style="{ color: 'var(--status-bad)' }">{{ form.errors.phone }}</p>
 
             <!-- 2. Активация -->
-            <label class="mt-5 mb-1.5 block text-[12px] font-bold uppercase tracking-wide" :style="{ color: 'var(--text-muted)' }">Активация</label>
+            <label class="mt-5 mb-1.5 block text-[12px] font-bold uppercase tracking-wide" :style="{ color: 'var(--text-muted)' }">{{ t('userModal.activation') }}</label>
             <div class="grid grid-cols-2 gap-2.5">
               <button
                 v-for="opt in [
-                  { value: 'active', title: 'Активен сразу',         hint: 'Без подтверждения — пользователь может входить сразу' },
-                  { value: 'sms',    title: 'Подтверждение по SMS',  hint: 'Код отправится через локальный SMS-модем' },
+                  { value: 'active', title: t('userModal.activeNow'),  hint: t('userModal.activeNowHint') },
+                  { value: 'sms',    title: t('userModal.smsConfirm'), hint: t('userModal.smsConfirmHint') },
                 ]"
                 :key="opt.value" type="button"
                 class="rounded-[12px] p-3.5 text-left transition"
@@ -199,24 +202,24 @@ watch(() => props.open, (open) => {
 
             <!-- 3. Локация -->
             <label class="mt-5 mb-1.5 block text-[12px] font-bold uppercase tracking-wide" :style="{ color: 'var(--text-muted)' }">
-              Локация<span class="ml-0.5 text-red">*</span>
+              {{ t('userModal.location') }}<span class="ml-0.5 text-red">*</span>
             </label>
             <div class="grid grid-cols-3 gap-2.5">
               <select v-model="form.region_id" class="input">
-                <option value="">Велаят *</option>
+                <option value="">{{ t('userModal.velayat') }}</option>
                 <option v-for="r in regions" :key="r.id" :value="r.id">{{ r.name_ru }}</option>
               </select>
               <select v-model="form.city_id" :disabled="!form.region_id" class="input disabled:cursor-not-allowed disabled:opacity-50">
-                <option value="">{{ form.region_id ? 'Город' : 'Сначала велаят' }}</option>
+                <option value="">{{ form.region_id ? t('userModal.cityOption') : t('userModal.firstVelayat') }}</option>
                 <option v-for="c in cities" :key="c.id" :value="c.id">{{ c.name_ru }}</option>
               </select>
               <select v-model="form.district_id" :disabled="!form.city_id" class="input disabled:cursor-not-allowed disabled:opacity-50">
-                <option value="">{{ form.city_id ? 'Район' : 'Сначала город' }}</option>
+                <option value="">{{ form.city_id ? t('userModal.districtOption') : t('userModal.firstCity') }}</option>
                 <option v-for="d in districts" :key="d.id" :value="d.id">{{ d.name_ru }}</option>
               </select>
             </div>
             <p class="mt-1.5 text-[11.5px]" :style="{ color: 'var(--text-muted)' }">
-              Велаят обязателен. Город и район — необязательные, список зависит от выбранного велаята.
+              {{ t('userModal.locationHint') }}
             </p>
             <p v-if="form.errors.region_id || form.errors.city_id || form.errors.district_id" class="mt-1 text-[12px] font-semibold" :style="{ color: 'var(--status-bad)' }">
               {{ form.errors.region_id || form.errors.city_id || form.errors.district_id }}
@@ -225,27 +228,27 @@ watch(() => props.open, (open) => {
             <!-- 4. Разделитель -->
             <div class="mt-6 mb-5 flex items-center gap-3">
               <span class="h-px flex-1" :style="{ background: 'var(--field-border)' }"></span>
-              <span class="text-[11.5px] font-semibold" :style="{ color: 'var(--text-muted)' }">Профиль — необязательно, можно заполнить позже</span>
+              <span class="text-[11.5px] font-semibold" :style="{ color: 'var(--text-muted)' }">{{ t('userModal.profileDivider') }}</span>
               <span class="h-px flex-1" :style="{ background: 'var(--field-border)' }"></span>
             </div>
 
             <!-- 5. Аватар + Имя -->
             <div class="flex items-end gap-3.5">
               <button
-                type="button" title="Загрузить аватар"
+                type="button" :title="t('userModal.uploadAvatar')"
                 class="flex h-14 w-14 flex-shrink-0 items-center justify-center overflow-hidden rounded-full transition"
                 :style="{ border: avatarPreview ? '1px solid var(--field-border)' : '1.5px dashed var(--field-border)', background: 'var(--field-bg)', color: 'var(--text-muted)' }"
                 @click="avatarInput.click()"
                 @dragover.prevent
                 @drop.prevent="pickAvatar($event.dataTransfer.files[0])"
               >
-                <img v-if="avatarPreview" :src="avatarPreview" class="h-full w-full object-cover" alt="Аватар" />
+                <img v-if="avatarPreview" :src="avatarPreview" class="h-full w-full object-cover" alt="" />
                 <Icon v-else kind="image" :size="18" />
               </button>
               <input ref="avatarInput" type="file" accept="image/*" class="hidden" @change="pickAvatar($event.target.files[0]); $event.target.value = ''" />
               <div class="min-w-0 flex-1">
-                <label class="mb-1.5 block text-[12px] font-bold uppercase tracking-wide" :style="{ color: 'var(--text-muted)' }">Имя</label>
-                <input v-model="form.name" type="text" placeholder="Имя пользователя" class="input" />
+                <label class="mb-1.5 block text-[12px] font-bold uppercase tracking-wide" :style="{ color: 'var(--text-muted)' }">{{ t('common.name') }}</label>
+                <input v-model="form.name" type="text" :placeholder="t('userModal.namePlaceholder')" class="input" />
               </div>
             </div>
             <p v-if="avatarError || form.errors.avatar" class="mt-1.5 text-[12px] font-semibold" :style="{ color: 'var(--status-bad)' }">{{ avatarError || form.errors.avatar }}</p>
@@ -254,10 +257,10 @@ watch(() => props.open, (open) => {
             <!-- Пол + Дата рождения -->
             <div class="mt-4 grid grid-cols-2 gap-3.5">
               <div>
-                <label class="mb-1.5 block text-[12px] font-bold uppercase tracking-wide" :style="{ color: 'var(--text-muted)' }">Пол</label>
+                <label class="mb-1.5 block text-[12px] font-bold uppercase tracking-wide" :style="{ color: 'var(--text-muted)' }">{{ t('userModal.gender') }}</label>
                 <div class="flex rounded-[10px] p-1" :style="{ background: 'var(--field-bg)', border: '1px solid var(--field-border)' }">
                   <button
-                    v-for="g in [{ value: '', label: 'Не указан' }, { value: 'male', label: 'Муж.' }, { value: 'female', label: 'Жен.' }]"
+                    v-for="g in [{ value: '', label: t('userModal.notSet') }, { value: 'male', label: t('userModal.maleShort') }, { value: 'female', label: t('userModal.femaleShort') }]"
                     :key="g.value" type="button"
                     class="flex-1 rounded-[7px] py-[7px] text-[12.5px] font-semibold transition"
                     :style="form.gender === g.value ? { background: 'var(--accent)', color: '#fff' } : { color: 'var(--text-secondary)' }"
@@ -266,7 +269,7 @@ watch(() => props.open, (open) => {
                 </div>
               </div>
               <div>
-                <label class="mb-1.5 block text-[12px] font-bold uppercase tracking-wide" :style="{ color: 'var(--text-muted)' }">Дата рождения</label>
+                <label class="mb-1.5 block text-[12px] font-bold uppercase tracking-wide" :style="{ color: 'var(--text-muted)' }">{{ t('userModal.birthDate') }}</label>
                 <input v-model="form.birth_date" type="date" :max="new Date().toISOString().slice(0, 10)" class="input" />
                 <p v-if="form.errors.birth_date" class="mt-1 text-[12px] font-semibold" :style="{ color: 'var(--status-bad)' }">{{ form.errors.birth_date }}</p>
               </div>
@@ -280,13 +283,13 @@ watch(() => props.open, (open) => {
               class="rounded-[10px] px-4 py-[10px] text-[13px] font-bold transition hover:bg-black/5 dark:hover:bg-white/5"
               :style="{ color: 'var(--text-secondary)' }"
               @click="$emit('close')"
-            >Отмена</button>
+            >{{ t('actions.cancel') }}</button>
             <button
               type="button" :disabled="!canSubmit"
               class="rounded-[10px] px-5 py-[10px] text-[13px] font-bold text-white transition disabled:cursor-not-allowed disabled:opacity-50"
               :style="{ background: 'var(--accent)' }"
               @click="submit"
-            >Создать пользователя</button>
+            >{{ t('userModal.submit') }}</button>
           </div>
         </div>
       </div>
