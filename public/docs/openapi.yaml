@@ -1,0 +1,2232 @@
+openapi: 3.0.3
+info:
+  title: 'Desc API Documentation'
+  description: ''
+  version: 1.0.0
+servers:
+  -
+    url: 'http://192.168.31.64:8000'
+tags:
+  -
+    name: Endpoints
+    description: ''
+components:
+  securitySchemes:
+    default:
+      type: http
+      scheme: bearer
+      description: 'Токен выдаётся эндпоинтом `POST /auth/verify` (Sanctum personal access token). Передавайте его в заголовке `Authorization: Bearer {token}`.'
+security:
+  -
+    default: []
+paths:
+  /api/health:
+    get:
+      summary: ''
+      operationId: getApiHealth
+      description: ''
+      parameters: []
+      responses:
+        200:
+          description: ''
+          content:
+            application/json:
+              schema:
+                type: object
+                example:
+                  status: ok
+                properties:
+                  status:
+                    type: string
+                    example: ok
+      tags:
+        - Endpoints
+      security: []
+  /api/v1/auth/send-code:
+    post:
+      summary: 'Запрос SMS-кода (регистрация и вход — единый сценарий).'
+      operationId: SMS
+      description: 'POST /api/v1/auth/send-code'
+      parameters: []
+      responses: {  }
+      tags:
+        - Endpoints
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                phone:
+                  type: string
+                  description: 'Must match the regex /^\+?\d{8,15}$/.'
+                  example: '6425593142326'
+              required:
+                - phone
+      security: []
+  /api/v1/auth/verify:
+    post:
+      summary: 'Проверка кода: новый номер регистрируется, существующий входит.'
+      operationId: ''
+      description: 'POST /api/v1/auth/verify'
+      parameters: []
+      responses: {  }
+      tags:
+        - Endpoints
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                phone:
+                  type: string
+                  description: 'Must match the regex /^\+?\d{8,15}$/.'
+                  example: '6425593142326'
+                code:
+                  type: string
+                  description: ''
+                  example: architecto
+                fcm_token:
+                  type: string
+                  description: 'Must not be greater than 255 characters.'
+                  example: 'n'
+                  nullable: true
+              required:
+                - phone
+                - code
+      security: []
+  /api/v1/auth/logout:
+    post:
+      summary: 'Отзыв текущего токена.'
+      operationId: ''
+      description: 'POST /api/v1/auth/logout'
+      parameters: []
+      responses: {  }
+      tags:
+        - Endpoints
+  /api/v1/profile:
+    get:
+      summary: 'Текущий профиль.'
+      operationId: ''
+      description: 'GET /api/v1/profile'
+      parameters: []
+      responses:
+        200:
+          description: ''
+          content:
+            application/json:
+              schema:
+                type: object
+                example:
+                  data:
+                    id: 5
+                    phone: '+99361123456'
+                    name: null
+                    gender: null
+                    birth_date: null
+                    avatar: null
+                    region: null
+                    city: null
+                    created_at: '2026-07-06T17:10:20+05:00'
+                  message: Success
+                properties:
+                  data:
+                    type: object
+                    properties:
+                      id:
+                        type: integer
+                        example: 5
+                      phone:
+                        type: string
+                        example: '+99361123456'
+                      name:
+                        type: string
+                        example: null
+                        nullable: true
+                      gender:
+                        type: string
+                        example: null
+                        nullable: true
+                      birth_date:
+                        type: string
+                        example: null
+                        nullable: true
+                      avatar:
+                        type: string
+                        example: null
+                        nullable: true
+                      region:
+                        type: string
+                        example: null
+                        nullable: true
+                      city:
+                        type: string
+                        example: null
+                        nullable: true
+                      created_at:
+                        type: string
+                        example: '2026-07-06T17:10:20+05:00'
+                  message:
+                    type: string
+                    example: Success
+      tags:
+        - Endpoints
+    put:
+      summary: 'Частичное обновление профиля (имя, пол, дата рождения, регион, город).'
+      operationId: ''
+      description: 'PUT /api/v1/profile'
+      parameters: []
+      responses: {  }
+      tags:
+        - Endpoints
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+                  description: 'Длина value не должна превышать 255 символов.'
+                  example: b
+                  nullable: true
+                gender:
+                  type: string
+                  description: ''
+                  example: female
+                  enum:
+                    - male
+                    - female
+                  nullable: true
+                birth_date:
+                  type: string
+                  description: 'Поле value должно быть корректной датой. Поле value должно быть датой раньше <code>today</code>.'
+                  example: '2022-08-02'
+                  nullable: true
+                region_id:
+                  type: string
+                  description: 'Must match an existing stored value.'
+                  example: null
+                  nullable: true
+                city_id:
+                  type: string
+                  description: 'Must match an existing stored value.'
+                  example: null
+                  nullable: true
+                fcm_token:
+                  type: string
+                  description: 'Длина value не должна превышать 255 символов.'
+                  example: 'n'
+                  nullable: true
+  /api/v1/profile/tariff:
+    get:
+      summary: 'Текущий тариф пользователя и остаток лимитов.'
+      operationId: ''
+      description: 'GET /api/v1/profile/tariff'
+      parameters: []
+      responses:
+        200:
+          description: ''
+          content:
+            application/json:
+              schema:
+                type: object
+                example:
+                  data:
+                    tariff:
+                      id: 1
+                      name_tk: Mugt
+                      name_ru: Бесплатный
+                      listings_limit: 5
+                      videos_limit: 2
+                      boost_limit: 3
+                      duration_days: 30
+                      is_free: true
+                    expires_at: null
+                    remaining:
+                      listings: 0
+                      videos: 2
+                      boosts: 3
+                  message: Success
+                properties:
+                  data:
+                    type: object
+                    properties:
+                      tariff:
+                        type: object
+                        properties:
+                          id:
+                            type: integer
+                            example: 1
+                          name_tk:
+                            type: string
+                            example: Mugt
+                          name_ru:
+                            type: string
+                            example: Бесплатный
+                          listings_limit:
+                            type: integer
+                            example: 5
+                          videos_limit:
+                            type: integer
+                            example: 2
+                          boost_limit:
+                            type: integer
+                            example: 3
+                          duration_days:
+                            type: integer
+                            example: 30
+                          is_free:
+                            type: boolean
+                            example: true
+                      expires_at:
+                        type: string
+                        example: null
+                        nullable: true
+                      remaining:
+                        type: object
+                        properties:
+                          listings:
+                            type: integer
+                            example: 0
+                          videos:
+                            type: integer
+                            example: 2
+                          boosts:
+                            type: integer
+                            example: 3
+                  message:
+                    type: string
+                    example: Success
+      tags:
+        - Endpoints
+  /api/v1/profile/avatar:
+    post:
+      summary: 'Загрузка аватара (конвертируется в WebP).'
+      operationId: WebP
+      description: 'POST /api/v1/profile/avatar'
+      parameters: []
+      responses: {  }
+      tags:
+        - Endpoints
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                avatar:
+                  type: string
+                  format: binary
+                  description: 'Поле value должно быть изображением. Размер файла value не должен превышать 5120 килобайт.'
+              required:
+                - avatar
+    delete:
+      summary: 'Удаление аватара.'
+      operationId: ''
+      description: 'DELETE /api/v1/profile/avatar'
+      parameters: []
+      responses: {  }
+      tags:
+        - Endpoints
+  /api/v1/profile/phone/send-code:
+    post:
+      summary: 'Смена номера, шаг 1: SMS-код на новый номер.'
+      operationId: 1SMS
+      description: 'POST /api/v1/profile/phone/send-code'
+      parameters: []
+      responses: {  }
+      tags:
+        - Endpoints
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                phone:
+                  type: string
+                  description: 'Must match the regex /^\+?\d{8,15}$/.'
+                  example: '6425593142326'
+              required:
+                - phone
+  /api/v1/profile/phone/confirm:
+    post:
+      summary: 'Смена номера, шаг 2: подтверждение кода — номер обновляется.'
+      operationId: '2'
+      description: 'POST /api/v1/profile/phone/confirm'
+      parameters: []
+      responses: {  }
+      tags:
+        - Endpoints
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                phone:
+                  type: string
+                  description: 'Must match the regex /^\+?\d{8,15}$/.'
+                  example: '6425593142326'
+                code:
+                  type: string
+                  description: ''
+                  example: architecto
+              required:
+                - phone
+                - code
+  /api/v1/news:
+    get:
+      summary: "Получить опубликованные новости (для мобильного приложения)\nGET /api/v1/news"
+      operationId: GETapiv1news
+      description: "Query параметры:\n- type: regular|ad (опционально, фильтр по типу)\n- page: 1 (пагинация)\n- limit: 20 (элементов на странице)"
+      parameters: []
+      responses:
+        200:
+          description: ''
+          content:
+            application/json:
+              schema:
+                type: object
+                example:
+                  data:
+                    -
+                      id: 1
+                      title_ru: aaa
+                      title_tk: jhkjh
+                      content_ru: 'fsddsfdfsfedg drfgtgdfgfdd fgdgfdfg fgd gfd gfd gdf dgf dgf gdf gdf gfd gfd gfd gdf gfd gfd gfd gdfgdf gfd gfd gfd gdf gdf gdfgdfgfdgdfdfg'
+                      content_tk: kjhk
+                      image: null
+                      type: ad
+                      ad_link_type: product
+                      ad_link_id: 12
+                      is_published: true
+                      published_at: '2026-07-07T17:58:22+05:00'
+                      created_at: '2026-07-07T12:02:13+05:00'
+                  meta:
+                    current_page: 1
+                    last_page: 1
+                    per_page: 20
+                    total: 1
+                  links:
+                    first: 'http://192.168.31.64:8000/api/v1/news?page=1'
+                    last: 'http://192.168.31.64:8000/api/v1/news?page=1'
+                    prev: null
+                    next: null
+                properties:
+                  data:
+                    type: array
+                    example:
+                      -
+                        id: 1
+                        title_ru: aaa
+                        title_tk: jhkjh
+                        content_ru: 'fsddsfdfsfedg drfgtgdfgfdd fgdgfdfg fgd gfd gfd gdf dgf dgf gdf gdf gfd gfd gfd gdf gfd gfd gfd gdfgdf gfd gfd gfd gdf gdf gdfgdfgfdgdfdfg'
+                        content_tk: kjhk
+                        image: null
+                        type: ad
+                        ad_link_type: product
+                        ad_link_id: 12
+                        is_published: true
+                        published_at: '2026-07-07T17:58:22+05:00'
+                        created_at: '2026-07-07T12:02:13+05:00'
+                    items:
+                      type: object
+                      properties:
+                        id:
+                          type: integer
+                          example: 1
+                        title_ru:
+                          type: string
+                          example: aaa
+                        title_tk:
+                          type: string
+                          example: jhkjh
+                        content_ru:
+                          type: string
+                          example: 'fsddsfdfsfedg drfgtgdfgfdd fgdgfdfg fgd gfd gfd gdf dgf dgf gdf gdf gfd gfd gfd gdf gfd gfd gfd gdfgdf gfd gfd gfd gdf gdf gdfgdfgfdgdfdfg'
+                        content_tk:
+                          type: string
+                          example: kjhk
+                        image:
+                          type: string
+                          example: null
+                          nullable: true
+                        type:
+                          type: string
+                          example: ad
+                        ad_link_type:
+                          type: string
+                          example: product
+                        ad_link_id:
+                          type: integer
+                          example: 12
+                        is_published:
+                          type: boolean
+                          example: true
+                        published_at:
+                          type: string
+                          example: '2026-07-07T17:58:22+05:00'
+                        created_at:
+                          type: string
+                          example: '2026-07-07T12:02:13+05:00'
+                  meta:
+                    type: object
+                    properties:
+                      current_page:
+                        type: integer
+                        example: 1
+                      last_page:
+                        type: integer
+                        example: 1
+                      per_page:
+                        type: integer
+                        example: 20
+                      total:
+                        type: integer
+                        example: 1
+                  links:
+                    type: object
+                    properties:
+                      first:
+                        type: string
+                        example: 'http://192.168.31.64:8000/api/v1/news?page=1'
+                      last:
+                        type: string
+                        example: 'http://192.168.31.64:8000/api/v1/news?page=1'
+                      prev:
+                        type: string
+                        example: null
+                        nullable: true
+                      next:
+                        type: string
+                        example: null
+                        nullable: true
+      tags:
+        - Endpoints
+      security: []
+  '/api/v1/news/{news_id}':
+    get:
+      summary: "Получить одну новость по ID\nGET /api/v1/news/{id}"
+      operationId: IDGETapiv1newsid
+      description: ''
+      parameters: []
+      responses:
+        200:
+          description: ''
+          content:
+            application/json:
+              schema:
+                type: object
+                example:
+                  data:
+                    id: 1
+                    title_ru: aaa
+                    title_tk: jhkjh
+                    content_ru: 'fsddsfdfsfedg drfgtgdfgfdd fgdgfdfg fgd gfd gfd gdf dgf dgf gdf gdf gfd gfd gfd gdf gfd gfd gfd gdfgdf gfd gfd gfd gdf gdf gdfgdfgfdgdfdfg'
+                    content_tk: kjhk
+                    image: null
+                    type: ad
+                    ad_link_type: product
+                    ad_link_id: 12
+                    is_published: true
+                    published_at: '2026-07-07T17:58:22+05:00'
+                    created_at: '2026-07-07T12:02:13+05:00'
+                properties:
+                  data:
+                    type: object
+                    properties:
+                      id:
+                        type: integer
+                        example: 1
+                      title_ru:
+                        type: string
+                        example: aaa
+                      title_tk:
+                        type: string
+                        example: jhkjh
+                      content_ru:
+                        type: string
+                        example: 'fsddsfdfsfedg drfgtgdfgfdd fgdgfdfg fgd gfd gfd gdf dgf dgf gdf gdf gfd gfd gfd gdf gfd gfd gfd gdfgdf gfd gfd gfd gdf gdf gdfgdfgfdgdfdfg'
+                      content_tk:
+                        type: string
+                        example: kjhk
+                      image:
+                        type: string
+                        example: null
+                        nullable: true
+                      type:
+                        type: string
+                        example: ad
+                      ad_link_type:
+                        type: string
+                        example: product
+                      ad_link_id:
+                        type: integer
+                        example: 12
+                      is_published:
+                        type: boolean
+                        example: true
+                      published_at:
+                        type: string
+                        example: '2026-07-07T17:58:22+05:00'
+                      created_at:
+                        type: string
+                        example: '2026-07-07T12:02:13+05:00'
+      tags:
+        - Endpoints
+      security: []
+    parameters:
+      -
+        in: path
+        name: news_id
+        description: 'The ID of the news.'
+        example: 1
+        required: true
+        schema:
+          type: integer
+  /api/v1/categories:
+    get:
+      summary: 'Дерево активных категорий (до 3 уровней) для мобильного приложения.'
+      operationId: '3'
+      description: 'GET /api/v1/categories'
+      parameters: []
+      responses:
+        200:
+          description: ''
+          content:
+            application/json:
+              schema:
+                type: object
+                example:
+                  data:
+                    -
+                      id: 1
+                      parent_id: null
+                      name_ru: Оптом
+                      name_tk: Optom
+                      icon: null
+                      level: 1
+                      children:
+                        -
+                          id: 2
+                          parent_id: 1
+                          name_ru: 'Продукты питания'
+                          name_tk: 'Продукты питания'
+                          icon: null
+                          level: 2
+                          children:
+                            -
+                              id: 17
+                              parent_id: 2
+                              name_ru: test
+                              name_tk: 566yu5tu7
+                              icon: 'http://192.168.31.64:8000/storage/categories/icons/paw.svg'
+                              level: 3
+                        -
+                          id: 3
+                          parent_id: 1
+                          name_ru: Стройматериалы
+                          name_tk: Стройматериалы
+                          icon: null
+                          level: 2
+                          children: []
+                        -
+                          id: 4
+                          parent_id: 1
+                          name_ru: Одежда
+                          name_tk: Одежда
+                          icon: null
+                          level: 2
+                          children: []
+                    -
+                      id: 5
+                      parent_id: null
+                      name_ru: Розница
+                      name_tk: Bölekleýin
+                      icon: null
+                      level: 1
+                      children:
+                        -
+                          id: 6
+                          parent_id: 5
+                          name_ru: Электроника
+                          name_tk: Электроника
+                          icon: null
+                          level: 2
+                          children: []
+                        -
+                          id: 7
+                          parent_id: 5
+                          name_ru: Мебель
+                          name_tk: Мебель
+                          icon: null
+                          level: 2
+                          children: []
+                        -
+                          id: 8
+                          parent_id: 5
+                          name_ru: 'Одежда и обувь'
+                          name_tk: 'Одежда и обувь'
+                          icon: null
+                          level: 2
+                          children: []
+                    -
+                      id: 9
+                      parent_id: null
+                      name_ru: Услуги
+                      name_tk: Hyzmatlar
+                      icon: null
+                      level: 1
+                      children:
+                        -
+                          id: 10
+                          parent_id: 9
+                          name_ru: Ремонт
+                          name_tk: Ремонт
+                          icon: null
+                          level: 2
+                          children: []
+                        -
+                          id: 11
+                          parent_id: 9
+                          name_ru: Перевозки
+                          name_tk: Перевозки
+                          icon: null
+                          level: 2
+                          children: []
+                        -
+                          id: 12
+                          parent_id: 9
+                          name_ru: 'Красота и здоровье'
+                          name_tk: 'Красота и здоровье'
+                          icon: null
+                          level: 2
+                          children: []
+                    -
+                      id: 13
+                      parent_id: null
+                      name_ru: Товары
+                      name_tk: Harytlar
+                      icon: null
+                      level: 1
+                      children:
+                        -
+                          id: 14
+                          parent_id: 13
+                          name_ru: Авто
+                          name_tk: Авто
+                          icon: null
+                          level: 2
+                          children: []
+                        -
+                          id: 15
+                          parent_id: 13
+                          name_ru: Недвижимость
+                          name_tk: Недвижимость
+                          icon: null
+                          level: 2
+                          children: []
+                        -
+                          id: 16
+                          parent_id: 13
+                          name_ru: Животные
+                          name_tk: Животные
+                          icon: null
+                          level: 2
+                          children: []
+                  message: Success
+                properties:
+                  data:
+                    type: array
+                    example:
+                      -
+                        id: 1
+                        parent_id: null
+                        name_ru: Оптом
+                        name_tk: Optom
+                        icon: null
+                        level: 1
+                        children:
+                          -
+                            id: 2
+                            parent_id: 1
+                            name_ru: 'Продукты питания'
+                            name_tk: 'Продукты питания'
+                            icon: null
+                            level: 2
+                            children:
+                              -
+                                id: 17
+                                parent_id: 2
+                                name_ru: test
+                                name_tk: 566yu5tu7
+                                icon: 'http://192.168.31.64:8000/storage/categories/icons/paw.svg'
+                                level: 3
+                          -
+                            id: 3
+                            parent_id: 1
+                            name_ru: Стройматериалы
+                            name_tk: Стройматериалы
+                            icon: null
+                            level: 2
+                            children: []
+                          -
+                            id: 4
+                            parent_id: 1
+                            name_ru: Одежда
+                            name_tk: Одежда
+                            icon: null
+                            level: 2
+                            children: []
+                      -
+                        id: 5
+                        parent_id: null
+                        name_ru: Розница
+                        name_tk: Bölekleýin
+                        icon: null
+                        level: 1
+                        children:
+                          -
+                            id: 6
+                            parent_id: 5
+                            name_ru: Электроника
+                            name_tk: Электроника
+                            icon: null
+                            level: 2
+                            children: []
+                          -
+                            id: 7
+                            parent_id: 5
+                            name_ru: Мебель
+                            name_tk: Мебель
+                            icon: null
+                            level: 2
+                            children: []
+                          -
+                            id: 8
+                            parent_id: 5
+                            name_ru: 'Одежда и обувь'
+                            name_tk: 'Одежда и обувь'
+                            icon: null
+                            level: 2
+                            children: []
+                      -
+                        id: 9
+                        parent_id: null
+                        name_ru: Услуги
+                        name_tk: Hyzmatlar
+                        icon: null
+                        level: 1
+                        children:
+                          -
+                            id: 10
+                            parent_id: 9
+                            name_ru: Ремонт
+                            name_tk: Ремонт
+                            icon: null
+                            level: 2
+                            children: []
+                          -
+                            id: 11
+                            parent_id: 9
+                            name_ru: Перевозки
+                            name_tk: Перевозки
+                            icon: null
+                            level: 2
+                            children: []
+                          -
+                            id: 12
+                            parent_id: 9
+                            name_ru: 'Красота и здоровье'
+                            name_tk: 'Красота и здоровье'
+                            icon: null
+                            level: 2
+                            children: []
+                      -
+                        id: 13
+                        parent_id: null
+                        name_ru: Товары
+                        name_tk: Harytlar
+                        icon: null
+                        level: 1
+                        children:
+                          -
+                            id: 14
+                            parent_id: 13
+                            name_ru: Авто
+                            name_tk: Авто
+                            icon: null
+                            level: 2
+                            children: []
+                          -
+                            id: 15
+                            parent_id: 13
+                            name_ru: Недвижимость
+                            name_tk: Недвижимость
+                            icon: null
+                            level: 2
+                            children: []
+                          -
+                            id: 16
+                            parent_id: 13
+                            name_ru: Животные
+                            name_tk: Животные
+                            icon: null
+                            level: 2
+                            children: []
+                    items:
+                      type: object
+                      properties:
+                        id:
+                          type: integer
+                          example: 1
+                        parent_id:
+                          type: string
+                          example: null
+                          nullable: true
+                        name_ru:
+                          type: string
+                          example: Оптом
+                        name_tk:
+                          type: string
+                          example: Optom
+                        icon:
+                          type: string
+                          example: null
+                          nullable: true
+                        level:
+                          type: integer
+                          example: 1
+                        children:
+                          type: array
+                          example:
+                            -
+                              id: 2
+                              parent_id: 1
+                              name_ru: 'Продукты питания'
+                              name_tk: 'Продукты питания'
+                              icon: null
+                              level: 2
+                              children:
+                                -
+                                  id: 17
+                                  parent_id: 2
+                                  name_ru: test
+                                  name_tk: 566yu5tu7
+                                  icon: 'http://192.168.31.64:8000/storage/categories/icons/paw.svg'
+                                  level: 3
+                            -
+                              id: 3
+                              parent_id: 1
+                              name_ru: Стройматериалы
+                              name_tk: Стройматериалы
+                              icon: null
+                              level: 2
+                              children: []
+                            -
+                              id: 4
+                              parent_id: 1
+                              name_ru: Одежда
+                              name_tk: Одежда
+                              icon: null
+                              level: 2
+                              children: []
+                          items:
+                            type: object
+                            properties:
+                              id:
+                                type: integer
+                                example: 2
+                              parent_id:
+                                type: integer
+                                example: 1
+                              name_ru:
+                                type: string
+                                example: 'Продукты питания'
+                              name_tk:
+                                type: string
+                                example: 'Продукты питания'
+                              icon:
+                                type: string
+                                example: null
+                                nullable: true
+                              level:
+                                type: integer
+                                example: 2
+                              children:
+                                type: array
+                                example:
+                                  -
+                                    id: 17
+                                    parent_id: 2
+                                    name_ru: test
+                                    name_tk: 566yu5tu7
+                                    icon: 'http://192.168.31.64:8000/storage/categories/icons/paw.svg'
+                                    level: 3
+                                items:
+                                  type: object
+                                  properties:
+                                    id:
+                                      type: integer
+                                      example: 17
+                                    parent_id:
+                                      type: integer
+                                      example: 2
+                                    name_ru:
+                                      type: string
+                                      example: test
+                                    name_tk:
+                                      type: string
+                                      example: 566yu5tu7
+                                    icon:
+                                      type: string
+                                      example: 'http://192.168.31.64:8000/storage/categories/icons/paw.svg'
+                                    level:
+                                      type: integer
+                                      example: 3
+                  message:
+                    type: string
+                    example: Success
+      tags:
+        - Endpoints
+      security: []
+  /api/v1/regions:
+    get:
+      summary: 'Список активных регионов с городами и районами для мобильного приложения.'
+      operationId: ''
+      description: 'GET /api/v1/regions'
+      parameters: []
+      responses:
+        200:
+          description: ''
+          content:
+            application/json:
+              schema:
+                type: object
+                example:
+                  data:
+                    -
+                      id: 2
+                      name_ru: Ахалский
+                      name_tk: Ahal
+                      cities:
+                        -
+                          id: 2
+                          region_id: 2
+                          name_ru: Аннау
+                          name_tk: Аннау
+                          districts: []
+                        -
+                          id: 3
+                          region_id: 2
+                          name_ru: Бахерден
+                          name_tk: Бахерден
+                          districts: []
+                        -
+                          id: 4
+                          region_id: 2
+                          name_ru: Геок-Тепе
+                          name_tk: Геок-Тепе
+                          districts: []
+                        -
+                          id: 5
+                          region_id: 2
+                          name_ru: Теджен
+                          name_tk: Теджен
+                          districts: []
+                    -
+                      id: 1
+                      name_ru: Ашхабад
+                      name_tk: Aşgabat
+                      cities:
+                        -
+                          id: 1
+                          region_id: 1
+                          name_ru: Ашхабад
+                          name_tk: Ашхабад
+                          districts: []
+                    -
+                      id: 3
+                      name_ru: Балканский
+                      name_tk: Balkan
+                      cities:
+                        -
+                          id: 6
+                          region_id: 3
+                          name_ru: Балканабат
+                          name_tk: Балканабат
+                          districts: []
+                        -
+                          id: 8
+                          region_id: 3
+                          name_ru: Сердар
+                          name_tk: Сердар
+                          districts: []
+                        -
+                          id: 7
+                          region_id: 3
+                          name_ru: Туркменбаши
+                          name_tk: Туркменбаши
+                          districts: []
+                    -
+                      id: 4
+                      name_ru: Дашогузский
+                      name_tk: Daşoguz
+                      cities:
+                        -
+                          id: 10
+                          region_id: 4
+                          name_ru: Болдумсаз
+                          name_tk: Болдумсаз
+                          districts: []
+                        -
+                          id: 9
+                          region_id: 4
+                          name_ru: Дашогуз
+                          name_tk: Дашогуз
+                          districts: []
+                        -
+                          id: 11
+                          region_id: 4
+                          name_ru: Куняургенч
+                          name_tk: Куняургенч
+                          districts: []
+                    -
+                      id: 5
+                      name_ru: Лебапский
+                      name_tk: Lebap
+                      cities:
+                        -
+                          id: 14
+                          region_id: 5
+                          name_ru: Сейди
+                          name_tk: Сейди
+                          districts: []
+                        -
+                          id: 12
+                          region_id: 5
+                          name_ru: Туркменабад
+                          name_tk: Туркменабад
+                          districts: []
+                        -
+                          id: 13
+                          region_id: 5
+                          name_ru: Фараб
+                          name_tk: Фараб
+                          districts: []
+                    -
+                      id: 6
+                      name_ru: Марыйский
+                      name_tk: Mary
+                      cities:
+                        -
+                          id: 17
+                          region_id: 6
+                          name_ru: Ёлётен
+                          name_tk: Ёлётен
+                          districts:
+                            -
+                              id: 1
+                              city_id: 17
+                              name_ru: Варашыл
+                              name_tk: Варашыл
+                            -
+                              id: 2
+                              city_id: 17
+                              name_ru: Тагтабазар
+                              name_tk: Тагтабазар
+                        -
+                          id: 16
+                          region_id: 6
+                          name_ru: Байрамали
+                          name_tk: Байрамали
+                          districts: []
+                        -
+                          id: 15
+                          region_id: 6
+                          name_ru: Мары
+                          name_tk: Мары
+                          districts: []
+                  message: Success
+                properties:
+                  data:
+                    type: array
+                    example:
+                      -
+                        id: 2
+                        name_ru: Ахалский
+                        name_tk: Ahal
+                        cities:
+                          -
+                            id: 2
+                            region_id: 2
+                            name_ru: Аннау
+                            name_tk: Аннау
+                            districts: []
+                          -
+                            id: 3
+                            region_id: 2
+                            name_ru: Бахерден
+                            name_tk: Бахерден
+                            districts: []
+                          -
+                            id: 4
+                            region_id: 2
+                            name_ru: Геок-Тепе
+                            name_tk: Геок-Тепе
+                            districts: []
+                          -
+                            id: 5
+                            region_id: 2
+                            name_ru: Теджен
+                            name_tk: Теджен
+                            districts: []
+                      -
+                        id: 1
+                        name_ru: Ашхабад
+                        name_tk: Aşgabat
+                        cities:
+                          -
+                            id: 1
+                            region_id: 1
+                            name_ru: Ашхабад
+                            name_tk: Ашхабад
+                            districts: []
+                      -
+                        id: 3
+                        name_ru: Балканский
+                        name_tk: Balkan
+                        cities:
+                          -
+                            id: 6
+                            region_id: 3
+                            name_ru: Балканабат
+                            name_tk: Балканабат
+                            districts: []
+                          -
+                            id: 8
+                            region_id: 3
+                            name_ru: Сердар
+                            name_tk: Сердар
+                            districts: []
+                          -
+                            id: 7
+                            region_id: 3
+                            name_ru: Туркменбаши
+                            name_tk: Туркменбаши
+                            districts: []
+                      -
+                        id: 4
+                        name_ru: Дашогузский
+                        name_tk: Daşoguz
+                        cities:
+                          -
+                            id: 10
+                            region_id: 4
+                            name_ru: Болдумсаз
+                            name_tk: Болдумсаз
+                            districts: []
+                          -
+                            id: 9
+                            region_id: 4
+                            name_ru: Дашогуз
+                            name_tk: Дашогуз
+                            districts: []
+                          -
+                            id: 11
+                            region_id: 4
+                            name_ru: Куняургенч
+                            name_tk: Куняургенч
+                            districts: []
+                      -
+                        id: 5
+                        name_ru: Лебапский
+                        name_tk: Lebap
+                        cities:
+                          -
+                            id: 14
+                            region_id: 5
+                            name_ru: Сейди
+                            name_tk: Сейди
+                            districts: []
+                          -
+                            id: 12
+                            region_id: 5
+                            name_ru: Туркменабад
+                            name_tk: Туркменабад
+                            districts: []
+                          -
+                            id: 13
+                            region_id: 5
+                            name_ru: Фараб
+                            name_tk: Фараб
+                            districts: []
+                      -
+                        id: 6
+                        name_ru: Марыйский
+                        name_tk: Mary
+                        cities:
+                          -
+                            id: 17
+                            region_id: 6
+                            name_ru: Ёлётен
+                            name_tk: Ёлётен
+                            districts:
+                              -
+                                id: 1
+                                city_id: 17
+                                name_ru: Варашыл
+                                name_tk: Варашыл
+                              -
+                                id: 2
+                                city_id: 17
+                                name_ru: Тагтабазар
+                                name_tk: Тагтабазар
+                          -
+                            id: 16
+                            region_id: 6
+                            name_ru: Байрамали
+                            name_tk: Байрамали
+                            districts: []
+                          -
+                            id: 15
+                            region_id: 6
+                            name_ru: Мары
+                            name_tk: Мары
+                            districts: []
+                    items:
+                      type: object
+                      properties:
+                        id:
+                          type: integer
+                          example: 2
+                        name_ru:
+                          type: string
+                          example: Ахалский
+                        name_tk:
+                          type: string
+                          example: Ahal
+                        cities:
+                          type: array
+                          example:
+                            -
+                              id: 2
+                              region_id: 2
+                              name_ru: Аннау
+                              name_tk: Аннау
+                              districts: []
+                            -
+                              id: 3
+                              region_id: 2
+                              name_ru: Бахерден
+                              name_tk: Бахерден
+                              districts: []
+                            -
+                              id: 4
+                              region_id: 2
+                              name_ru: Геок-Тепе
+                              name_tk: Геок-Тепе
+                              districts: []
+                            -
+                              id: 5
+                              region_id: 2
+                              name_ru: Теджен
+                              name_tk: Теджен
+                              districts: []
+                          items:
+                            type: object
+                            properties:
+                              id:
+                                type: integer
+                                example: 2
+                              region_id:
+                                type: integer
+                                example: 2
+                              name_ru:
+                                type: string
+                                example: Аннау
+                              name_tk:
+                                type: string
+                                example: Аннау
+                              districts:
+                                type: array
+                                example: []
+                  message:
+                    type: string
+                    example: Success
+      tags:
+        - Endpoints
+      security: []
+  /api/v1/banners:
+    get:
+      summary: "Активные баннеры для мобильного приложения\nGET /api/v1/banners"
+      operationId: GETapiv1banners
+      description: ''
+      parameters: []
+      responses:
+        200:
+          description: ''
+          content:
+            application/json:
+              schema:
+                type: object
+                example:
+                  data:
+                    -
+                      id: 1
+                      title_ru: asdfasd
+                      title_tk: 'tm tili'
+                      image: 'http://192.168.31.64:8000/storage/banners/f0b2fa8b-7a3c-4ea8-8829-b3b995baf19a.webp'
+                      link_type: url
+                      link_url: 'https://tmcars.info'
+                      listing_id: null
+                      starts_at: '2026-07-08T00:15:00+05:00'
+                      ends_at: '2026-08-08T00:15:00+05:00'
+                properties:
+                  data:
+                    type: array
+                    example:
+                      -
+                        id: 1
+                        title_ru: asdfasd
+                        title_tk: 'tm tili'
+                        image: 'http://192.168.31.64:8000/storage/banners/f0b2fa8b-7a3c-4ea8-8829-b3b995baf19a.webp'
+                        link_type: url
+                        link_url: 'https://tmcars.info'
+                        listing_id: null
+                        starts_at: '2026-07-08T00:15:00+05:00'
+                        ends_at: '2026-08-08T00:15:00+05:00'
+                    items:
+                      type: object
+                      properties:
+                        id:
+                          type: integer
+                          example: 1
+                        title_ru:
+                          type: string
+                          example: asdfasd
+                        title_tk:
+                          type: string
+                          example: 'tm tili'
+                        image:
+                          type: string
+                          example: 'http://192.168.31.64:8000/storage/banners/f0b2fa8b-7a3c-4ea8-8829-b3b995baf19a.webp'
+                        link_type:
+                          type: string
+                          example: url
+                        link_url:
+                          type: string
+                          example: 'https://tmcars.info'
+                        listing_id:
+                          type: string
+                          example: null
+                          nullable: true
+                        starts_at:
+                          type: string
+                          example: '2026-07-08T00:15:00+05:00'
+                        ends_at:
+                          type: string
+                          example: '2026-08-08T00:15:00+05:00'
+      tags:
+        - Endpoints
+      security: []
+  /api/v1/listings:
+    get:
+      summary: 'Публичная выдача одобренных объявлений.'
+      operationId: ''
+      description: "GET /api/v1/listings\n\nФильтры: search, category_id (включая подкатегории), region_id, city_id,\ntype (goods|services), price_min, price_max,\nsort (latest|price_asc|price_desc|nearest + lat/lng), page, limit."
+      parameters: []
+      responses:
+        422:
+          description: ''
+          content:
+            application/json:
+              schema:
+                type: object
+                example:
+                  message: 'Выбранное значение регион недопустимо.'
+                  errors:
+                    region_id:
+                      - 'Выбранное значение регион недопустимо.'
+                properties:
+                  message:
+                    type: string
+                    example: 'Выбранное значение регион недопустимо.'
+                  errors:
+                    type: object
+                    properties:
+                      region_id:
+                        type: array
+                        example:
+                          - 'Выбранное значение регион недопустимо.'
+                        items:
+                          type: string
+      tags:
+        - Endpoints
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                search:
+                  type: string
+                  description: 'Длина value не должна превышать 100 символов.'
+                  example: b
+                  nullable: true
+                category_id:
+                  type: integer
+                  description: 'Must match an existing stored value.'
+                  example: 16
+                  nullable: true
+                region_id:
+                  type: integer
+                  description: 'Must match an existing stored value.'
+                  example: 16
+                  nullable: true
+                city_id:
+                  type: integer
+                  description: 'Must match an existing stored value.'
+                  example: 16
+                  nullable: true
+                type:
+                  type: string
+                  description: ''
+                  example: goods
+                  enum:
+                    - goods
+                    - services
+                  nullable: true
+                price_min:
+                  type: number
+                  description: 'Значение value должно быть не менее 0.'
+                  example: 39
+                  nullable: true
+                price_max:
+                  type: number
+                  description: 'Значение value должно быть не менее 0.'
+                  example: 84
+                  nullable: true
+                sort:
+                  type: string
+                  description: ''
+                  example: nearest
+                  enum:
+                    - latest
+                    - price_asc
+                    - price_desc
+                    - nearest
+                  nullable: true
+                lat:
+                  type: number
+                  description: 'This field is required when <code>sort</code> is <code>nearest</code>. Значение value должно быть между -90 и 90.'
+                  example: -89
+                  nullable: true
+                lng:
+                  type: number
+                  description: 'This field is required when <code>sort</code> is <code>nearest</code>. Значение value должно быть между -180 и 180.'
+                  example: -180
+                  nullable: true
+                limit:
+                  type: integer
+                  description: 'Значение value должно быть между 1 и 50.'
+                  example: 1
+                  nullable: true
+                page:
+                  type: integer
+                  description: 'Значение value должно быть не менее 1.'
+                  example: 43
+                  nullable: true
+      security: []
+    post:
+      summary: 'Создание объявления (multipart: photos[] до 8 шт). Статус — pending.'
+      operationId: multipartPhotos8Pending
+      description: 'POST /api/v1/listings'
+      parameters: []
+      responses: {  }
+      tags:
+        - Endpoints
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                title:
+                  type: string
+                  description: 'Длина value не должна превышать 255 символов.'
+                  example: b
+                description:
+                  type: string
+                  description: 'Длина value не должна превышать 5000 символов.'
+                  example: 'Et animi quos velit et fugiat.'
+                type:
+                  type: string
+                  description: ''
+                  example: goods
+                  enum:
+                    - goods
+                    - services
+                category_id:
+                  type: string
+                  description: 'Must match an existing stored value.'
+                  example: architecto
+                region_id:
+                  type: string
+                  description: 'Must match an existing stored value.'
+                  example: architecto
+                city_id:
+                  type: string
+                  description: 'Must match an existing stored value.'
+                  example: architecto
+                price:
+                  type: number
+                  description: 'Значение value должно быть не менее 0. Значение value не должно превышать 9999999999.'
+                  example: 22
+                  nullable: true
+                phone:
+                  type: string
+                  description: 'Must match the regex /^\+993\d{8}$/.'
+                  example: '+99356425593'
+                  nullable: true
+                tags:
+                  type: array
+                  description: 'Длина value не должна превышать 30 символов.'
+                  example:
+                    - 'n'
+                  items:
+                    type: string
+                location:
+                  type: object
+                  description: ''
+                  example: null
+                  properties:
+                    lat:
+                      type: number
+                      description: 'This field is required when <code>location</code> is present. Значение value должно быть между -90 и 90.'
+                      example: -90
+                    lng:
+                      type: number
+                      description: 'This field is required when <code>location</code> is present. Значение value должно быть между -180 и 180.'
+                      example: -180
+                  nullable: true
+                photos:
+                  type: array
+                  description: 'Поле value должно быть изображением. Размер файла value не должен превышать 5120 килобайт.'
+                  items:
+                    type: string
+                    format: binary
+              required:
+                - title
+                - description
+                - type
+                - category_id
+                - region_id
+                - city_id
+  /api/v1/listings/my:
+    get:
+      summary: 'Объявления текущего пользователя (все статусы модерации).'
+      operationId: ''
+      description: 'GET /api/v1/listings/my?status=pending|approved|rejected'
+      parameters: []
+      responses:
+        200:
+          description: ''
+          content:
+            application/json:
+              schema:
+                type: object
+                example:
+                  data: []
+                  meta:
+                    current_page: 22
+                    last_page: 1
+                    per_page: 2
+                    total: 2
+                  links:
+                    first: 'http://192.168.31.64:8000/api/v1/listings/my?page=1'
+                    last: 'http://192.168.31.64:8000/api/v1/listings/my?page=1'
+                    prev: 'http://192.168.31.64:8000/api/v1/listings/my?page=21'
+                    next: null
+                properties:
+                  data:
+                    type: array
+                    example: []
+                  meta:
+                    type: object
+                    properties:
+                      current_page:
+                        type: integer
+                        example: 22
+                      last_page:
+                        type: integer
+                        example: 1
+                      per_page:
+                        type: integer
+                        example: 2
+                      total:
+                        type: integer
+                        example: 2
+                  links:
+                    type: object
+                    properties:
+                      first:
+                        type: string
+                        example: 'http://192.168.31.64:8000/api/v1/listings/my?page=1'
+                      last:
+                        type: string
+                        example: 'http://192.168.31.64:8000/api/v1/listings/my?page=1'
+                      prev:
+                        type: string
+                        example: 'http://192.168.31.64:8000/api/v1/listings/my?page=21'
+                      next:
+                        type: string
+                        example: null
+                        nullable: true
+      tags:
+        - Endpoints
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                status:
+                  type: string
+                  description: ''
+                  example: pending
+                  enum:
+                    - pending
+                    - approved
+                    - rejected
+                  nullable: true
+                limit:
+                  type: integer
+                  description: 'Значение value должно быть между 1 и 50.'
+                  example: 2
+                  nullable: true
+                page:
+                  type: integer
+                  description: 'Значение value должно быть не менее 1.'
+                  example: 22
+                  nullable: true
+  '/api/v1/listings/{listing_id}':
+    put:
+      summary: 'Редактирование своего объявления — возвращает его на модерацию.'
+      operationId: ''
+      description: 'POST|PUT /api/v1/listings/{id} (multipart — слать POST)'
+      parameters: []
+      responses: {  }
+      tags:
+        - Endpoints
+      requestBody:
+        required: false
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                title:
+                  type: string
+                  description: 'Длина value не должна превышать 255 символов.'
+                  example: b
+                description:
+                  type: string
+                  description: 'Длина value не должна превышать 5000 символов.'
+                  example: 'Et animi quos velit et fugiat.'
+                type:
+                  type: string
+                  description: ''
+                  example: services
+                  enum:
+                    - goods
+                    - services
+                category_id:
+                  type: string
+                  description: 'Must match an existing stored value.'
+                  example: null
+                region_id:
+                  type: string
+                  description: 'Must match an existing stored value.'
+                  example: null
+                city_id:
+                  type: string
+                  description: 'This field is required when <code>region_id</code> is present. Must match an existing stored value.'
+                  example: null
+                price:
+                  type: number
+                  description: 'Значение value должно быть не менее 0. Значение value не должно превышать 9999999999.'
+                  example: 1
+                  nullable: true
+                phone:
+                  type: string
+                  description: 'Must match the regex /^\+993\d{8}$/.'
+                  example: '+99356425593'
+                  nullable: true
+                tags:
+                  type: array
+                  description: 'Длина value не должна превышать 30 символов.'
+                  example:
+                    - 'n'
+                  items:
+                    type: string
+                location:
+                  type: object
+                  description: ''
+                  example: null
+                  properties:
+                    lat:
+                      type: number
+                      description: 'This field is required when <code>location</code> is present. Значение value должно быть между -90 и 90.'
+                      example: -90
+                    lng:
+                      type: number
+                      description: 'This field is required when <code>location</code> is present. Значение value должно быть между -180 и 180.'
+                      example: -180
+                  nullable: true
+                photos:
+                  type: array
+                  description: 'Поле value должно быть изображением. Размер файла value не должен превышать 5120 килобайт.'
+                  items:
+                    type: string
+                    format: binary
+                remove_media_ids:
+                  type: array
+                  description: 'Must match an existing stored value.'
+                  example:
+                    - 16
+                  items:
+                    type: integer
+    delete:
+      summary: 'Удаление своего объявления вместе с медиафайлами.'
+      operationId: ''
+      description: 'DELETE /api/v1/listings/{id}'
+      parameters: []
+      responses: {  }
+      tags:
+        - Endpoints
+    get:
+      summary: 'Карточка объявления. Каждый просмотр (кроме владельца) увеличивает счётчик.'
+      operationId: ''
+      description: 'GET /api/v1/listings/{id}'
+      parameters: []
+      responses:
+        200:
+          description: ''
+          content:
+            application/json:
+              schema:
+                type: object
+                example:
+                  data:
+                    id: 5
+                    title: 'Продам велосипед'
+                    description: 'Отличное состояние, почти не катались'
+                    type: goods
+                    price: 1500
+                    phone: '+99361123456'
+                    tags:
+                      - велосипед
+                      - спорт
+                    location:
+                      lat: '37.95'
+                      lng: '58.38'
+                    status: rejected
+                    rejection_reason:
+                      id: 4
+                      name_tk: 'Surat ýeterlik däl'
+                      name_ru: 'Недостаточно фото'
+                    views: 0
+                    is_boosted: false
+                    boosted_at: null
+                    category:
+                      id: 17
+                      parent_id: 2
+                      name_tk: 566yu5tu7
+                      name_ru: test
+                      path:
+                        -
+                          id: 1
+                          name_tk: Optom
+                          name_ru: Оптом
+                        -
+                          id: 2
+                          name_tk: 'Продукты питания'
+                          name_ru: 'Продукты питания'
+                        -
+                          id: 17
+                          name_tk: 566yu5tu7
+                          name_ru: test
+                    region:
+                      id: 1
+                      name_tk: Aşgabat
+                      name_ru: Ашхабад
+                    city:
+                      id: 1
+                      name_tk: Ашхабад
+                      name_ru: Ашхабад
+                    user:
+                      id: 5
+                      name: null
+                      avatar: null
+                    photos:
+                      -
+                        id: 6
+                        order: 1
+                        processing: false
+                        original: 'http://192.168.31.64:8000/storage/listings/5/photos/original/r72i5yrqJv59vZF0OSHTByTth2BchS7pqHGkbGh1.webp'
+                        medium: 'http://192.168.31.64:8000/storage/listings/5/photos/medium/r72i5yrqJv59vZF0OSHTByTth2BchS7pqHGkbGh1.webp'
+                        thumb: 'http://192.168.31.64:8000/storage/listings/5/photos/thumb/r72i5yrqJv59vZF0OSHTByTth2BchS7pqHGkbGh1.webp'
+                      -
+                        id: 7
+                        order: 2
+                        processing: false
+                        original: 'http://192.168.31.64:8000/storage/listings/5/photos/original/OewpzvLvIEc77ILgN8oBmUSWMKak80J4AXXg8z0g.webp'
+                        medium: 'http://192.168.31.64:8000/storage/listings/5/photos/medium/OewpzvLvIEc77ILgN8oBmUSWMKak80J4AXXg8z0g.webp'
+                        thumb: 'http://192.168.31.64:8000/storage/listings/5/photos/thumb/OewpzvLvIEc77ILgN8oBmUSWMKak80J4AXXg8z0g.webp'
+                    created_at: '2026-07-08T11:18:23+05:00'
+                  message: Success
+                properties:
+                  data:
+                    type: object
+                    properties:
+                      id:
+                        type: integer
+                        example: 5
+                      title:
+                        type: string
+                        example: 'Продам велосипед'
+                      description:
+                        type: string
+                        example: 'Отличное состояние, почти не катались'
+                      type:
+                        type: string
+                        example: goods
+                      price:
+                        type: integer
+                        example: 1500
+                      phone:
+                        type: string
+                        example: '+99361123456'
+                      tags:
+                        type: array
+                        example:
+                          - велосипед
+                          - спорт
+                        items:
+                          type: string
+                      location:
+                        type: object
+                        properties:
+                          lat:
+                            type: string
+                            example: '37.95'
+                          lng:
+                            type: string
+                            example: '58.38'
+                      status:
+                        type: string
+                        example: rejected
+                      rejection_reason:
+                        type: object
+                        properties:
+                          id:
+                            type: integer
+                            example: 4
+                          name_tk:
+                            type: string
+                            example: 'Surat ýeterlik däl'
+                          name_ru:
+                            type: string
+                            example: 'Недостаточно фото'
+                      views:
+                        type: integer
+                        example: 0
+                      is_boosted:
+                        type: boolean
+                        example: false
+                      boosted_at:
+                        type: string
+                        example: null
+                        nullable: true
+                      category:
+                        type: object
+                        properties:
+                          id:
+                            type: integer
+                            example: 17
+                          parent_id:
+                            type: integer
+                            example: 2
+                          name_tk:
+                            type: string
+                            example: 566yu5tu7
+                          name_ru:
+                            type: string
+                            example: test
+                          path:
+                            type: array
+                            example:
+                              -
+                                id: 1
+                                name_tk: Optom
+                                name_ru: Оптом
+                              -
+                                id: 2
+                                name_tk: 'Продукты питания'
+                                name_ru: 'Продукты питания'
+                              -
+                                id: 17
+                                name_tk: 566yu5tu7
+                                name_ru: test
+                            items:
+                              type: object
+                              properties:
+                                id:
+                                  type: integer
+                                  example: 1
+                                name_tk:
+                                  type: string
+                                  example: Optom
+                                name_ru:
+                                  type: string
+                                  example: Оптом
+                      region:
+                        type: object
+                        properties:
+                          id:
+                            type: integer
+                            example: 1
+                          name_tk:
+                            type: string
+                            example: Aşgabat
+                          name_ru:
+                            type: string
+                            example: Ашхабад
+                      city:
+                        type: object
+                        properties:
+                          id:
+                            type: integer
+                            example: 1
+                          name_tk:
+                            type: string
+                            example: Ашхабад
+                          name_ru:
+                            type: string
+                            example: Ашхабад
+                      user:
+                        type: object
+                        properties:
+                          id:
+                            type: integer
+                            example: 5
+                          name:
+                            type: string
+                            example: null
+                            nullable: true
+                          avatar:
+                            type: string
+                            example: null
+                            nullable: true
+                      photos:
+                        type: array
+                        example:
+                          -
+                            id: 6
+                            order: 1
+                            processing: false
+                            original: 'http://192.168.31.64:8000/storage/listings/5/photos/original/r72i5yrqJv59vZF0OSHTByTth2BchS7pqHGkbGh1.webp'
+                            medium: 'http://192.168.31.64:8000/storage/listings/5/photos/medium/r72i5yrqJv59vZF0OSHTByTth2BchS7pqHGkbGh1.webp'
+                            thumb: 'http://192.168.31.64:8000/storage/listings/5/photos/thumb/r72i5yrqJv59vZF0OSHTByTth2BchS7pqHGkbGh1.webp'
+                          -
+                            id: 7
+                            order: 2
+                            processing: false
+                            original: 'http://192.168.31.64:8000/storage/listings/5/photos/original/OewpzvLvIEc77ILgN8oBmUSWMKak80J4AXXg8z0g.webp'
+                            medium: 'http://192.168.31.64:8000/storage/listings/5/photos/medium/OewpzvLvIEc77ILgN8oBmUSWMKak80J4AXXg8z0g.webp'
+                            thumb: 'http://192.168.31.64:8000/storage/listings/5/photos/thumb/OewpzvLvIEc77ILgN8oBmUSWMKak80J4AXXg8z0g.webp'
+                        items:
+                          type: object
+                          properties:
+                            id:
+                              type: integer
+                              example: 6
+                            order:
+                              type: integer
+                              example: 1
+                            processing:
+                              type: boolean
+                              example: false
+                            original:
+                              type: string
+                              example: 'http://192.168.31.64:8000/storage/listings/5/photos/original/r72i5yrqJv59vZF0OSHTByTth2BchS7pqHGkbGh1.webp'
+                            medium:
+                              type: string
+                              example: 'http://192.168.31.64:8000/storage/listings/5/photos/medium/r72i5yrqJv59vZF0OSHTByTth2BchS7pqHGkbGh1.webp'
+                            thumb:
+                              type: string
+                              example: 'http://192.168.31.64:8000/storage/listings/5/photos/thumb/r72i5yrqJv59vZF0OSHTByTth2BchS7pqHGkbGh1.webp'
+                      created_at:
+                        type: string
+                        example: '2026-07-08T11:18:23+05:00'
+                  message:
+                    type: string
+                    example: Success
+      tags:
+        - Endpoints
+      security: []
+    parameters:
+      -
+        in: path
+        name: listing_id
+        description: 'The ID of the listing.'
+        example: 5
+        required: true
+        schema:
+          type: integer
+  '/api/v1/listings/{listing_id}/boost':
+    post:
+      summary: 'Поднятие объявления в выдаче (интервал и лимиты — во внутренних правилах).'
+      operationId: ''
+      description: 'POST /api/v1/listings/{id}/boost'
+      parameters: []
+      responses: {  }
+      tags:
+        - Endpoints
+    parameters:
+      -
+        in: path
+        name: listing_id
+        description: 'The ID of the listing.'
+        example: 5
+        required: true
+        schema:
+          type: integer
+  /api/v1/chat:
+    get:
+      summary: 'История переписки с поддержкой (единственный диалог пользователя).'
+      operationId: ''
+      description: 'GET /api/v1/chat'
+      parameters: []
+      responses:
+        200:
+          description: ''
+          content:
+            application/json:
+              schema:
+                type: object
+                example:
+                  data:
+                    -
+                      id: 4
+                      sender: user
+                      text: 'Здравствуйте, у меня вопрос по объявлению'
+                      is_read: true
+                      created_at: '2026-07-08T11:04:25.000000Z'
+                    -
+                      id: 11
+                      sender: user
+                      text: 'Здравствуйте, у меня вопрос по объявлению'
+                      is_read: true
+                      created_at: '2026-07-08T11:35:54.000000Z'
+                properties:
+                  data:
+                    type: array
+                    example:
+                      -
+                        id: 4
+                        sender: user
+                        text: 'Здравствуйте, у меня вопрос по объявлению'
+                        is_read: true
+                        created_at: '2026-07-08T11:04:25.000000Z'
+                      -
+                        id: 11
+                        sender: user
+                        text: 'Здравствуйте, у меня вопрос по объявлению'
+                        is_read: true
+                        created_at: '2026-07-08T11:35:54.000000Z'
+                    items:
+                      type: object
+                      properties:
+                        id:
+                          type: integer
+                          example: 4
+                        sender:
+                          type: string
+                          example: user
+                        text:
+                          type: string
+                          example: 'Здравствуйте, у меня вопрос по объявлению'
+                        is_read:
+                          type: boolean
+                          example: true
+                        created_at:
+                          type: string
+                          example: '2026-07-08T11:04:25.000000Z'
+      tags:
+        - Endpoints
+    post:
+      summary: 'Отправка сообщения в поддержку.'
+      operationId: ''
+      description: 'POST /api/v1/chat'
+      parameters: []
+      responses: {  }
+      tags:
+        - Endpoints
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                text:
+                  type: string
+                  description: 'Длина value не должна превышать 5000 символов.'
+                  example: b
+              required:
+                - text
+  /api/v1/chat/read:
+    patch:
+      summary: 'Отметить ответы админа прочитанными (пользователь открыл чат).'
+      operationId: ''
+      description: 'PATCH /api/v1/chat/read'
+      parameters: []
+      responses: {  }
+      tags:
+        - Endpoints
+  /api/broadcasting/auth:
+    get:
+      summary: 'Authenticate the request for channel access.'
+      operationId: authenticateTheRequestForChannelAccess
+      description: ''
+      parameters: []
+      responses:
+        403:
+          description: ''
+          content:
+            application/json:
+              schema:
+                type: object
+                example:
+                  message: 'Внутренняя ошибка сервера'
+                properties:
+                  message:
+                    type: string
+                    example: 'Внутренняя ошибка сервера'
+      tags:
+        - Endpoints
+      security: []

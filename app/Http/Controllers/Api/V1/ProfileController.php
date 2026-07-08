@@ -22,6 +22,8 @@ class ProfileController extends Controller
     /**
      * Текущий профиль.
      * GET /api/v1/profile
+     *
+     * @authenticated
      */
     public function show(Request $request)
     {
@@ -34,6 +36,8 @@ class ProfileController extends Controller
     /**
      * Частичное обновление профиля (имя, пол, дата рождения, регион, город).
      * PUT /api/v1/profile
+     *
+     * @authenticated
      */
     public function update(UpdateProfileRequest $request)
     {
@@ -48,6 +52,8 @@ class ProfileController extends Controller
     /**
      * Загрузка аватара (конвертируется в WebP).
      * POST /api/v1/profile/avatar
+     *
+     * @authenticated
      */
     public function updateAvatar(UpdateAvatarRequest $request)
     {
@@ -62,6 +68,8 @@ class ProfileController extends Controller
     /**
      * Удаление аватара.
      * DELETE /api/v1/profile/avatar
+     *
+     * @authenticated
      */
     public function deleteAvatar(Request $request)
     {
@@ -76,6 +84,8 @@ class ProfileController extends Controller
     /**
      * Смена номера, шаг 1: SMS-код на новый номер.
      * POST /api/v1/profile/phone/send-code
+     *
+     * @authenticated
      */
     public function sendPhoneCode(ChangePhoneRequest $request)
     {
@@ -93,6 +103,8 @@ class ProfileController extends Controller
     /**
      * Смена номера, шаг 2: подтверждение кода — номер обновляется.
      * POST /api/v1/profile/phone/confirm
+     *
+     * @authenticated
      */
     public function confirmPhone(ConfirmPhoneRequest $request)
     {

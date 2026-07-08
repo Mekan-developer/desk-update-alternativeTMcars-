@@ -57,6 +57,8 @@ class AuthController extends Controller
     /**
      * Отзыв текущего токена.
      * POST /api/v1/auth/logout
+     *
+     * @authenticated
      */
     public function logout(Request $request)
     {
