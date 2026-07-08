@@ -11,12 +11,22 @@ return [
     'listing_approved' => 'Объявление одобрено',
     'listing_rejected' => 'Объявление отклонено',
     'listing_boosted'  => 'Объявление поднято',
+    'listing_created'  => 'Объявление создано и отправлено на модерацию',
+    'listing_updated'  => 'Объявление обновлено и отправлено на повторную модерацию',
+    'listing_deleted'  => 'Объявление удалено',
+    'listing_photos_required' => 'У объявления должно остаться хотя бы одно фото',
+    'listing_photos_limit'    => 'Максимум 8 фотографий на объявление',
+    'category_must_be_leaf'   => 'Выберите конечную подкатегорию',
     'boost_interval_not_passed' => 'Нельзя поднять — интервал ещё не прошёл',
     'tariff_limit_exceeded' => 'Лимит тарифа исчерпан',
     'tariff_assigned' => 'Тариф назначен',
+    'boost_limit_exceeded' => 'Лимит поднятий по тарифу исчерпан',
 
     'video_approved' => 'Ролик одобрен',
     'video_rejected' => 'Ролик отклонён',
+
+    'message_sent'        => 'Сообщение отправлено',
+    'chat_marked_read'    => 'Отмечено как прочитанное',
 
     'review_approved' => 'Отзыв одобрен',
     'review_rejected' => 'Отзыв отклонён',
@@ -47,6 +57,13 @@ return [
 
     'manager_permission_updated' => 'Права менеджера обновлены',
     'localization_updated'       => 'Настройки локализации сохранены',
+    'boost_settings_updated'     => 'Настройки поднятия сохранены',
     'sms_test_sent'              => 'Тестовое SMS отправлено',
     'sms_test_failed'            => 'Не удалось отправить тестовое SMS',
+
+    'unauthenticated' => 'Необходима авторизация',
+    'forbidden'       => 'Доступ запрещён',
+    'not_found'       => 'Не найдено',
+    'too_many_requests' => 'Слишком много запросов. Попробуйте позже',
+    'server_error'    => 'Внутренняя ошибка сервера',
 ];

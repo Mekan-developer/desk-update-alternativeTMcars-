@@ -11,12 +11,22 @@ return [
     'listing_approved' => 'Bildiriş tassyklandy',
     'listing_rejected' => 'Bildiriş ret edildi',
     'listing_boosted'  => 'Bildiriş ýokarlandyryldy',
+    'listing_created'  => 'Bildiriş döredildi we barlaga iberildi',
+    'listing_updated'  => 'Bildiriş täzelendi we gaýtadan barlaga iberildi',
+    'listing_deleted'  => 'Bildiriş pozuldy',
+    'listing_photos_required' => 'Bildirişde azyndan bir surat galmaly',
+    'listing_photos_limit'    => 'Bir bildirişe iň köp 8 surat',
+    'category_must_be_leaf'   => 'Iň soňky kiçi kategoriýany saýlaň',
     'boost_interval_not_passed' => 'Ýokary galdyryp bolmaz — aralyk heniz geçmedi',
     'tariff_limit_exceeded' => 'Tarif limiti doldy',
     'tariff_assigned' => 'Tarif bellenildi',
+    'boost_limit_exceeded' => 'Tarif boýunça göteriliş çägi doldy',
 
     'video_approved' => 'Wideo tassyklandy',
     'video_rejected' => 'Wideo ret edildi',
+
+    'message_sent'        => 'Habar iberildi',
+    'chat_marked_read'    => 'Okalan diýip bellenildi',
 
     'review_approved' => 'Syn tassyklandy',
     'review_rejected' => 'Syn ret edildi',
@@ -47,6 +57,13 @@ return [
 
     'manager_permission_updated' => 'Dolandyryjynyň hukuklary üýtgedildi',
     'localization_updated'       => 'Lokalizasiýa sazlamalary saklandy',
+    'boost_settings_updated'     => 'Göteriliş sazlamalary saklandy',
     'sms_test_sent'              => 'Test SMS iberildi',
     'sms_test_failed'            => 'Test SMS iberip bolmady',
+
+    'unauthenticated' => 'Awtorizasiýa gerek',
+    'forbidden'       => 'Girmek gadagan',
+    'not_found'       => 'Tapylmady',
+    'too_many_requests' => 'Gaty köp soragy. Soňra synanyşyň',
+    'server_error'    => 'Serwerde içerki ýalňyşlyk',
 ];

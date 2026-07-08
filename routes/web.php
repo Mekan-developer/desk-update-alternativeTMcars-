@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\Admin\BannerController;
 use App\Http\Controllers\Admin\CategoryController;
 use App\Http\Controllers\Admin\ChatController;
 use App\Http\Controllers\Admin\CityController;
@@ -8,7 +9,9 @@ use App\Http\Controllers\Admin\ComplaintReasonController;
 use App\Http\Controllers\Admin\DashboardController;
 use App\Http\Controllers\Admin\DistrictController;
 use App\Http\Controllers\Admin\ListingController;
+use App\Http\Controllers\Admin\LocaleController;
 use App\Http\Controllers\Admin\NewsController;
+use App\Http\Controllers\Admin\NotificationController;
 use App\Http\Controllers\Admin\PushController;
 use App\Http\Controllers\Admin\RegionController;
 use App\Http\Controllers\Admin\RejectionReasonController;
@@ -27,6 +30,12 @@ Route::get('/', fn() => redirect()->route('dashboard'));
 Route::middleware(['auth', 'role:admin,manager'])->group(function () {
 
     Route::get('/dashboard', DashboardController::class)->name('dashboard');
+
+    // Язык интерфейса текущего пользователя (переключатель в топбаре, доступен admin и manager)
+    Route::patch('locale', [LocaleController::class, 'update'])->name('locale.update');
+
+    // Уведомления в топбаре (индивидуальный dismiss на пользователя)
+    Route::post('notifications/dismiss', [NotificationController::class, 'dismiss'])->name('notifications.dismiss');
 
     // Users
     Route::resource('users', UserController::class)->except('create', 'edit', 'show');
@@ -81,6 +90,13 @@ Route::middleware(['auth', 'role:admin,manager'])->group(function () {
         Route::patch('news/{news}/unpublish', [NewsController::class, 'unpublish'])->name('news.unpublish');
     });
 
+    // Banners — manager needs can_manage_banners permission (see Settings → Роли и права)
+    Route::middleware('banner.permission')->group(function () {
+        Route::resource('banners', BannerController::class)->except('create', 'edit', 'show');
+        Route::patch('banners/{banner}/toggle', [BannerController::class, 'toggle'])->name('banners.toggle');
+        Route::patch('banners/{banner}/move',   [BannerController::class, 'move'])->name('banners.move');
+    });
+
     // Complaints
     Route::get('complaints',                          [ComplaintController::class, 'index'])->name('complaints.index');
     Route::patch('complaints/{complaint}/resolve',    [ComplaintController::class, 'resolve'])->name('complaints.resolve');
@@ -106,6 +122,7 @@ Route::middleware(['auth', 'role:admin,manager'])->group(function () {
         Route::get('settings/monitoring',              StatusController::class)->name('settings.monitoring');
         Route::patch('settings/manager-permissions',   [SettingsController::class, 'updateManagerPermissions'])->name('settings.manager-permissions');
         Route::patch('settings/localization',          [SettingsController::class, 'updateLocalization'])->name('settings.localization');
+        Route::patch('settings/boost',                 [SettingsController::class, 'updateBoostSettings'])->name('settings.boost');
         Route::get('settings/sms-gateway',             [SmsGatewayController::class, 'status'])->name('settings.sms-gateway');
         Route::post('settings/sms-gateway/test',       [SmsGatewayController::class, 'test'])->name('settings.sms-gateway.test');
     });
