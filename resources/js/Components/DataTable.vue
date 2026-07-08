@@ -1,7 +1,9 @@
 <script setup>
 import { ref, computed } from 'vue'
+import { useI18n } from 'vue-i18n'
 import Icon from '@/Components/Icon.vue'
 import Pagination from '@/Components/Pagination.vue'
+import SearchInput from '@/Components/SearchInput.vue'
 
 /**
  * Глобальный компонент таблицы с поиском, фильтром, пагинацией и действиями.
@@ -63,16 +65,28 @@ const props = defineProps({
     // Плейсхолдер поиска
     searchPlaceholder: {
         type: String,
-        default: 'Поиск...',
+        default: '',
     },
     // Сообщение пустого состояния
     emptyMessage: {
         type: String,
-        default: 'Ничего не найдено',
+        default: '',
+    },
+    // Показывать встроенную панель поиска/счётчика (выключить, если страница строит свою — поиск/фильтры/счётчик — над таблицей сама)
+    showToolbar: {
+        type: Boolean,
+        default: true,
     },
 })
 
 const emit = defineEmits(['search', 'filter', 'dblclick', 'action'])
+
+const { t } = useI18n()
+
+// icon/title действия могут быть функцией от строки — например, глаз/зачёркнутый глаз
+// в зависимости от того, опубликована ли конкретная новость
+const actionIcon  = (action, item) => typeof action.icon  === 'function' ? action.icon(item)  : action.icon
+const actionTitle = (action, item) => typeof action.title === 'function' ? action.title(item) : action.title
 
 const searchQuery = ref(props.filters.search ?? '')
 
@@ -89,8 +103,9 @@ const filtered = computed(() => {
     return result
 })
 
-const onSearch = () => {
-    emit('search', searchQuery.value)
+const onSearch = value => {
+    searchQuery.value = value
+    emit('search', value)
 }
 
 const handleAction = (action, item) => {
@@ -120,7 +135,7 @@ const getCellClass = (column, value) => {
         return column.badges[value]?.cls || 'bg-surface dark:bg-dbg text-muted'
     }
     if (column.type === 'status') {
-        return value?.published ? 'text-[var(--status-ok)]' : 'text-[var(--text-muted)]'
+        return value ? 'text-[var(--status-ok)]' : 'text-[var(--text-muted)]'
     }
     return ''
 }
@@ -129,22 +144,18 @@ const getCellClass = (column, value) => {
 <template>
   <div class="space-y-4">
     <!-- Фильтры и поиск -->
-    <div class="flex gap-3 items-center">
+    <div v-if="showToolbar" class="flex gap-3 items-center">
       <!-- Поиск -->
-      <div class="flex items-center gap-2 flex-1 max-w-xs rounded-[10px] border border-[var(--field-border)] bg-[var(--field-bg)] px-3 py-2">
-        <Icon kind="search" :size="16" class="flex-shrink-0 text-[var(--text-muted)]" />
-        <input
-          v-model="searchQuery"
-          @input="onSearch"
-          type="text"
-          :placeholder="searchPlaceholder"
-          class="flex-1 bg-transparent outline-none text-sm text-[var(--text)] placeholder-[var(--text-muted)]"
-        />
-      </div>
+      <SearchInput
+        :model-value="searchQuery"
+        @update:model-value="onSearch"
+        :placeholder="searchPlaceholder || t('dataTable.searchPlaceholder')"
+        class="flex-1 max-w-xs"
+      />
 
       <!-- Счётчик -->
       <div class="text-[12px] text-[var(--text-muted)] font-semibold whitespace-nowrap" v-if="items.length">
-        {{ filtered.length }} из {{ items.length }}
+        {{ t('dataTable.countOf', { shown: filtered.length, total: items.length }) }}
       </div>
     </div>
 
@@ -192,7 +203,7 @@ const getCellClass = (column, value) => {
               <!-- Text -->
               <div v-else-if="col.type === 'text'">
                 <div class="font-semibold text-[var(--text)] max-w-[280px] truncate">
-                  {{ renderCell(item, col) }}
+                  <slot :name="`cell-${col.key}`" :item="item" :value="renderCell(item, col)">{{ renderCell(item, col) }}</slot>
                 </div>
               </div>
 
@@ -205,9 +216,9 @@ const getCellClass = (column, value) => {
 
               <!-- Status -->
               <div v-else-if="col.type === 'status'" class="flex items-center gap-1.5">
-                <div class="w-1.5 h-1.5 rounded-full" :class="item[col.key]?.published ? 'bg-[var(--status-ok)]' : 'bg-[var(--text-muted)]'"></div>
+                <div class="w-1.5 h-1.5 rounded-full" :class="item[col.key] ? 'bg-[var(--status-ok)]' : 'bg-[var(--text-muted)]'"></div>
                 <span class="text-[11px] font-bold" :class="getCellClass(col, item[col.key])">
-                  {{ item[col.key]?.published ? 'Опубликовано' : 'Черновик' }}
+                  {{ item[col.key] ? t('status.published') : t('status.draft') }}
                 </span>
               </div>
 
@@ -221,17 +232,17 @@ const getCellClass = (column, value) => {
             <td v-if="actions.length" class="px-3 py-3">
               <div class="flex gap-1 justify-end">
                 <button
-                  v-for="action in actions"
-                  :key="action.key || action.title"
-                  :title="action.title"
-                  :aria-label="action.title"
+                  v-for="(action, ai) in actions"
+                  :key="action.key || ai"
+                  :title="actionTitle(action, item)"
+                  :aria-label="actionTitle(action, item)"
                   @click.stop="handleAction(action, item)"
                   class="h-8 w-8 flex items-center justify-center rounded-[8px] transition-colors flex-shrink-0"
                   :class="action.color === 'red'
                     ? 'bg-[var(--field-bg)] text-[var(--text-secondary)] hover:bg-red/20 hover:text-red'
                     : 'bg-[var(--field-bg)] text-[var(--text-secondary)] hover:bg-[var(--nav-hover)]'"
                 >
-                  <Icon :kind="action.icon" :size="14" />
+                  <Icon :kind="actionIcon(action, item)" :size="14" />
                 </button>
               </div>
             </td>
@@ -240,7 +251,7 @@ const getCellClass = (column, value) => {
           <!-- Пустое состояние -->
           <tr v-if="filtered.length === 0">
             <td :colspan="columns.length + (actions.length ? 1 : 0)" class="px-4 py-10 text-center text-[var(--text-muted)] text-sm">
-              {{ emptyMessage }}
+              {{ emptyMessage || t('dataTable.empty') }}
             </td>
           </tr>
         </tbody>

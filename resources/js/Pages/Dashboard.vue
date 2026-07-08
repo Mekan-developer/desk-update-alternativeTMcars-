@@ -1,9 +1,12 @@
 <script setup>
 import { computed } from 'vue'
 import { Link } from '@inertiajs/vue3'
+import { useI18n } from 'vue-i18n'
 import AppLayout from '@/Layouts/AppLayout.vue'
 import StatCard from '@/Components/StatCard.vue'
 import StatusBadge from '@/Components/StatusBadge.vue'
+
+const { t, locale } = useI18n()
 
 const props = defineProps({
     stats:            Object,
@@ -14,12 +17,12 @@ const props = defineProps({
 })
 
 const kpiCards = computed(() => [
-    { label: 'Всего пользователей',   value: props.stats?.users,            iconBg: 'rgba(67,97,238,.12)',  iconColor: '#4361ee', icon: 'users' },
-    { label: 'Объявлений',            value: props.stats?.listings,         iconBg: 'rgba(6,214,160,.12)',  iconColor: '#06d6a0', icon: 'listing' },
-    { label: 'На модерации',          value: props.stats?.listings_pending, iconBg: 'rgba(251,133,0,.12)',  iconColor: '#fb8500', icon: 'clock' },
-    { label: 'Роликов',               value: props.stats?.videos,           iconBg: 'rgba(0,180,216,.12)',  iconColor: '#00b4d8', icon: 'video' },
-    { label: 'Роликов на проверке',   value: props.stats?.videos_pending,   iconBg: 'rgba(247,37,133,.12)', iconColor: '#f72585', icon: 'clock' },
-    { label: 'Новых жалоб',           value: props.stats?.complaints_new,   iconBg: 'rgba(239,68,68,.12)',  iconColor: '#ef4444', icon: 'flag' },
+    { label: t('dashboard.totalUsers'),    value: props.stats?.users,            iconBg: 'rgba(67,97,238,.12)',  iconColor: '#4361ee', icon: 'users' },
+    { label: t('dashboard.listings'),      value: props.stats?.listings,         iconBg: 'rgba(6,214,160,.12)',  iconColor: '#06d6a0', icon: 'listing' },
+    { label: t('dashboard.onModeration'),  value: props.stats?.listings_pending, iconBg: 'rgba(251,133,0,.12)',  iconColor: '#fb8500', icon: 'clock' },
+    { label: t('dashboard.videos'),        value: props.stats?.videos,           iconBg: 'rgba(0,180,216,.12)',  iconColor: '#00b4d8', icon: 'video' },
+    { label: t('dashboard.videosPending'), value: props.stats?.videos_pending,   iconBg: 'rgba(247,37,133,.12)', iconColor: '#f72585', icon: 'clock' },
+    { label: t('dashboard.newComplaints'), value: props.stats?.complaints_new,   iconBg: 'rgba(239,68,68,.12)',  iconColor: '#ef4444', icon: 'flag' },
 ])
 
 const maxVal = computed(() => {
@@ -36,7 +39,7 @@ const days = computed(() => {
         d.setDate(d.getDate() - 6 + i)
         const key = d.toISOString().split('T')[0]
         return {
-            label:    d.toLocaleDateString('ru', { weekday: 'short' }),
+            label:    d.toLocaleDateString(locale.value, { weekday: 'short' }),
             key,
             users:    props.charts?.users_7d?.[key]    || 0,
             listings: props.charts?.listings_7d?.[key] || 0,
@@ -75,10 +78,10 @@ function formatDate(d) {
       <!-- Bar chart -->
       <div class="rounded-card bg-white shadow-soft dark:bg-dcard">
         <div class="flex items-center justify-between px-[22px] py-[18px] border-b border-line dark:border-dline">
-          <span class="text-[15px] font-extrabold text-ink dark:text-slate-100">Активность за 7 дней</span>
+          <span class="text-[15px] font-extrabold text-ink dark:text-slate-100">{{ t('dashboard.activity7d') }}</span>
           <div class="flex items-center gap-4 text-[12px] font-bold">
-            <span class="flex items-center gap-1.5 text-muted"><span class="h-2.5 w-2.5 rounded-sm bg-blue inline-block"></span>Пользователи</span>
-            <span class="flex items-center gap-1.5 text-muted"><span class="h-2.5 w-2.5 rounded-sm bg-green inline-block"></span>Объявления</span>
+            <span class="flex items-center gap-1.5 text-muted"><span class="h-2.5 w-2.5 rounded-sm bg-blue inline-block"></span>{{ t('dashboard.legendUsers') }}</span>
+            <span class="flex items-center gap-1.5 text-muted"><span class="h-2.5 w-2.5 rounded-sm bg-green inline-block"></span>{{ t('dashboard.legendListings') }}</span>
           </div>
         </div>
         <div class="px-6 py-5 flex items-end gap-2" style="height:220px;">
@@ -95,7 +98,7 @@ function formatDate(d) {
       <!-- Top categories -->
       <div class="rounded-card bg-white shadow-soft dark:bg-dcard">
         <div class="px-[22px] py-[18px] border-b border-line dark:border-dline">
-          <span class="text-[15px] font-extrabold text-ink dark:text-slate-100">Топ категорий</span>
+          <span class="text-[15px] font-extrabold text-ink dark:text-slate-100">{{ t('dashboard.topCategories') }}</span>
         </div>
         <div class="px-[22px] py-4">
           <div v-for="(cat, i) in topCategories" :key="cat.id" class="mb-4">
@@ -107,7 +110,7 @@ function formatDate(d) {
               <div class="h-full rounded-full transition-all" :style="{ width: (cat.listings_count / topMax * 100) + '%', background: catColors[i] }"></div>
             </div>
           </div>
-          <p v-if="!topCategories?.length" class="text-[13px] text-muted text-center py-4">Нет данных</p>
+          <p v-if="!topCategories?.length" class="text-[13px] text-muted text-center py-4">{{ t('common.noData') }}</p>
         </div>
       </div>
     </div>
@@ -115,17 +118,17 @@ function formatDate(d) {
     <!-- Recent Listings -->
     <div class="rounded-card bg-white shadow-soft dark:bg-dcard mb-5 overflow-hidden">
       <div class="flex items-center justify-between px-[22px] py-[18px] border-b border-line dark:border-dline">
-        <span class="text-[15px] font-extrabold text-ink dark:text-slate-100">Последние объявления</span>
-        <Link :href="route('listings.index')" class="text-[12px] font-bold text-blue hover:underline">Все →</Link>
+        <span class="text-[15px] font-extrabold text-ink dark:text-slate-100">{{ t('dashboard.recentListings') }}</span>
+        <Link :href="route('listings.index')" class="text-[12px] font-bold text-blue hover:underline">{{ t('dashboard.allLink') }}</Link>
       </div>
       <table class="w-full">
         <thead class="bg-surface/50 dark:bg-dbg/50">
           <tr>
-            <th class="px-4 py-[11px] text-left text-[11px] font-bold uppercase tracking-[.07em] text-muted border-b-2 border-line dark:border-dline">Объявление</th>
-            <th class="px-4 py-[11px] text-left text-[11px] font-bold uppercase tracking-[.07em] text-muted border-b-2 border-line dark:border-dline">Автор</th>
-            <th class="px-4 py-[11px] text-left text-[11px] font-bold uppercase tracking-[.07em] text-muted border-b-2 border-line dark:border-dline">Категория</th>
-            <th class="px-4 py-[11px] text-left text-[11px] font-bold uppercase tracking-[.07em] text-muted border-b-2 border-line dark:border-dline">Статус</th>
-            <th class="px-4 py-[11px] text-left text-[11px] font-bold uppercase tracking-[.07em] text-muted border-b-2 border-line dark:border-dline">Дата</th>
+            <th class="px-4 py-[11px] text-left text-[11px] font-bold uppercase tracking-[.07em] text-muted border-b-2 border-line dark:border-dline">{{ t('dashboard.listing') }}</th>
+            <th class="px-4 py-[11px] text-left text-[11px] font-bold uppercase tracking-[.07em] text-muted border-b-2 border-line dark:border-dline">{{ t('common.author') }}</th>
+            <th class="px-4 py-[11px] text-left text-[11px] font-bold uppercase tracking-[.07em] text-muted border-b-2 border-line dark:border-dline">{{ t('common.category') }}</th>
+            <th class="px-4 py-[11px] text-left text-[11px] font-bold uppercase tracking-[.07em] text-muted border-b-2 border-line dark:border-dline">{{ t('common.status') }}</th>
+            <th class="px-4 py-[11px] text-left text-[11px] font-bold uppercase tracking-[.07em] text-muted border-b-2 border-line dark:border-dline">{{ t('common.date') }}</th>
           </tr>
         </thead>
         <tbody>
@@ -138,7 +141,7 @@ function formatDate(d) {
             <td class="px-4 py-[13px] text-[13px] border-b border-line dark:border-dline"><StatusBadge :status="listing.status" /></td>
             <td class="px-4 py-[13px] text-[13px] border-b border-line dark:border-dline font-data text-muted">{{ formatDate(listing.created_at) }}</td>
           </tr>
-          <tr v-if="!recentListings?.length"><td colspan="5" class="px-4 py-8 text-center text-[13px] text-muted">Нет объявлений</td></tr>
+          <tr v-if="!recentListings?.length"><td colspan="5" class="px-4 py-8 text-center text-[13px] text-muted">{{ t('dashboard.noListings') }}</td></tr>
         </tbody>
       </table>
     </div>
@@ -146,8 +149,8 @@ function formatDate(d) {
     <!-- Recent Complaints -->
     <div class="rounded-card bg-white shadow-soft dark:bg-dcard overflow-hidden">
       <div class="flex items-center justify-between px-[22px] py-[18px] border-b border-line dark:border-dline">
-        <span class="text-[15px] font-extrabold text-ink dark:text-slate-100">Новые жалобы</span>
-        <Link :href="route('complaints.index')" class="text-[12px] font-bold text-blue hover:underline">Все →</Link>
+        <span class="text-[15px] font-extrabold text-ink dark:text-slate-100">{{ t('dashboard.newComplaints') }}</span>
+        <Link :href="route('complaints.index')" class="text-[12px] font-bold text-blue hover:underline">{{ t('dashboard.allLink') }}</Link>
       </div>
       <div class="divide-y divide-line dark:divide-dline">
         <div v-for="c in recentComplaints" :key="c.id" class="flex items-center gap-3 px-[22px] py-4">
@@ -155,16 +158,16 @@ function formatDate(d) {
           <div class="flex-1 min-w-0">
             <p class="text-[13px] font-bold text-ink dark:text-slate-200">
               <span class="text-blue">{{ c.user?.name || c.user?.phone }}</span>
-              пожаловался на «{{ c.listing?.title || '...' }}»
+              {{ t('dashboard.complainedAbout') }} «{{ c.listing?.title || '...' }}»
             </p>
             <p class="text-[12px] text-muted">{{ c.complaint_reason?.name_ru || '—' }}</p>
           </div>
           <div class="flex items-center gap-2 flex-shrink-0">
             <span class="font-data text-[11px] text-muted">{{ formatDate(c.created_at) }}</span>
-            <Link :href="route('complaints.index')" class="rounded-[7px] bg-blue-light px-3 py-1.5 text-[11px] font-bold text-blue hover:bg-blue hover:text-white transition">Рассмотреть</Link>
+            <Link :href="route('complaints.index')" class="rounded-[7px] bg-blue-light px-3 py-1.5 text-[11px] font-bold text-blue hover:bg-blue hover:text-white transition">{{ t('dashboard.review') }}</Link>
           </div>
         </div>
-        <div v-if="!recentComplaints?.length" class="px-[22px] py-8 text-center text-[13px] text-muted">Нет новых жалоб</div>
+        <div v-if="!recentComplaints?.length" class="px-[22px] py-8 text-center text-[13px] text-muted">{{ t('dashboard.noNewComplaints') }}</div>
       </div>
     </div>
   </AppLayout>

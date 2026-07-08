@@ -1,5 +1,6 @@
 <script setup>
 import { ref, computed, watch, onBeforeUnmount } from 'vue'
+import { useI18n } from 'vue-i18n'
 import Icon from '@/Components/Icon.vue'
 
 /**
@@ -14,6 +15,8 @@ const props = defineProps({
     existingUrl: { type: String, default: null },      // текущий значок категории (режим редактирования)
 })
 const emit = defineEmits(['update:iconPath', 'update:iconFile'])
+
+const { t } = useI18n()
 
 const fileInput = ref(null)
 const error = ref('')
@@ -47,11 +50,11 @@ function onFileSelected(e) {
     if (!file) return
     error.value = ''
     if (!file.name.toLowerCase().endsWith('.svg')) {
-        error.value = 'Допустим только SVG-файл'
+        error.value = t('iconPicker.svgOnly')
         return
     }
     if (file.size > 1024 * 1024) {
-        error.value = 'Файл больше 1 МБ'
+        error.value = t('iconPicker.tooBig')
         return
     }
     emit('update:iconPath', null)
@@ -75,13 +78,13 @@ function clear() {
         <Icon v-else kind="image" :size="20" class="text-[var(--text-muted)]" />
       </div>
       <div class="flex-1 text-[11px] text-[var(--text-muted)]">
-        Выберите значок из библиотеки или загрузите свой SVG (до 1 МБ) — показывается в списке админки и в мобильном приложении.
+        {{ t('iconPicker.hint') }}
       </div>
       <button
         v-if="currentPreview"
         type="button" @click="clear"
         class="rounded-[10px] px-3 py-[7px] text-[12px] font-semibold text-red transition-colors hover:bg-red/10 flex-shrink-0"
-      >Удалить</button>
+      >{{ t('actions.delete') }}</button>
     </div>
 
     <div class="mt-3 grid grid-cols-6 gap-2">
@@ -99,7 +102,7 @@ function clear() {
 
       <button
         type="button" @click="openUpload"
-        title="Загрузить новый SVG"
+        :title="t('iconPicker.uploadNew')"
         class="flex h-11 w-11 items-center justify-center rounded-[10px] border-2 border-dashed transition-colors"
         :class="iconFile
           ? 'border-[var(--accent)] bg-[var(--accent-tint)]'

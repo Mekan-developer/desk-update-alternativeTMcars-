@@ -1,9 +1,12 @@
 <script setup>
-import { ref } from 'vue'
+import { ref, computed } from 'vue'
 import { router } from '@inertiajs/vue3'
+import { useI18n } from 'vue-i18n'
 import AppLayout from '@/Layouts/AppLayout.vue'
 import StatusBadge from '@/Components/StatusBadge.vue'
 import Pagination from '@/Components/Pagination.vue'
+
+const { t } = useI18n()
 
 const props = defineProps({
     complaints: Object,
@@ -14,12 +17,18 @@ const props = defineProps({
 
 const filter = ref(props.filters?.status || '')
 
+const tabs = computed(() => [
+    { key: '', label: t('common.all') },
+    { key: 'pending', label: t('complaints.tabPending'), count: props.counts?.pending },
+    { key: 'resolved', label: t('complaints.tabResolved'), count: props.counts?.resolved },
+])
+
 function applyFilter(s) {
     filter.value = s
     router.get(route('complaints.index'), { status: s || undefined }, { preserveState: true })
 }
 function resolve(c) {
-    if (confirm('Пометить жалобу как решённую?')) {
+    if (confirm(t('complaints.confirmResolve'))) {
         router.patch(route('complaints.resolve', c.id), { status: 'resolved' })
     }
 }
@@ -27,13 +36,13 @@ function resolve(c) {
 
 <template>
   <AppLayout>
-    <template #header>Жалобы</template>
+    <template #header>{{ t('nav.complaints') }}</template>
 
     <div class="space-y-4">
       <!-- Status tabs -->
       <div class="flex gap-2 flex-wrap">
         <button
-          v-for="tab in [{ key: '', label: 'Все' }, { key: 'pending', label: 'Ожидают', count: counts?.pending }, { key: 'resolved', label: 'Решены', count: counts?.resolved }]"
+          v-for="tab in tabs"
           :key="tab.key"
           @click="applyFilter(tab.key)"
           class="flex items-center gap-1.5 px-3 py-1.5 rounded-btn text-sm font-bold transition"
@@ -49,11 +58,11 @@ function resolve(c) {
         <table class="w-full text-sm">
           <thead class="bg-surface dark:bg-dbg">
             <tr>
-              <th class="px-4 py-3 text-left text-xs font-extrabold text-muted uppercase">Пользователь</th>
-              <th class="px-4 py-3 text-left text-xs font-extrabold text-muted uppercase">Объявление</th>
-              <th class="px-4 py-3 text-left text-xs font-extrabold text-muted uppercase">Причина</th>
-              <th class="px-4 py-3 text-left text-xs font-extrabold text-muted uppercase">Статус</th>
-              <th class="px-4 py-3 text-left text-xs font-extrabold text-muted uppercase">Дата</th>
+              <th class="px-4 py-3 text-left text-xs font-extrabold text-muted uppercase">{{ t('users.colUser') }}</th>
+              <th class="px-4 py-3 text-left text-xs font-extrabold text-muted uppercase">{{ t('listings.colListing') }}</th>
+              <th class="px-4 py-3 text-left text-xs font-extrabold text-muted uppercase">{{ t('complaints.colReason') }}</th>
+              <th class="px-4 py-3 text-left text-xs font-extrabold text-muted uppercase">{{ t('common.status') }}</th>
+              <th class="px-4 py-3 text-left text-xs font-extrabold text-muted uppercase">{{ t('common.date') }}</th>
               <th class="px-4 py-3"></th>
             </tr>
           </thead>
@@ -77,12 +86,12 @@ function resolve(c) {
                   @click="resolve(c)"
                   class="px-3 py-1 rounded-btn bg-green-50 dark:bg-green-900/20 text-green-700 dark:text-green-400 text-xs font-bold hover:bg-green-100 transition"
                 >
-                  Решить
+                  {{ t('complaints.resolveBtn') }}
                 </button>
               </td>
             </tr>
             <tr v-if="!complaints.data?.length">
-              <td colspan="6" class="px-4 py-10 text-center text-muted text-sm">Жалоб нет</td>
+              <td colspan="6" class="px-4 py-10 text-center text-muted text-sm">{{ t('complaints.empty') }}</td>
             </tr>
           </tbody>
         </table>

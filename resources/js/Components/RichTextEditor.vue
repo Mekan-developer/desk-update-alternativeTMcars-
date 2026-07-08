@@ -1,11 +1,14 @@
 <script setup>
-import { ref, watch, nextTick } from 'vue'
+import { ref, watch, nextTick, onMounted } from 'vue'
+import { useI18n } from 'vue-i18n'
 
 const props = defineProps({
     modelValue: String,
     placeholder: String,
 })
 const emit = defineEmits(['update:modelValue'])
+
+const { t } = useI18n()
 
 const editor = ref(null)
 const isUpdating = ref(false)
@@ -15,7 +18,13 @@ watch(() => props.modelValue, (newValue) => {
     if (!isUpdating.value && editor.value) {
         editor.value.innerHTML = newValue || ''
     }
-}, { immediate: true })
+})
+
+// При монтировании watch ещё не имеет доступа к DOM-узлу: без этого
+// открытие формы редактирования показывало бы пустой редактор
+onMounted(() => {
+    if (editor.value) editor.value.innerHTML = props.modelValue || ''
+})
 
 const sanitizeHtml = (html) => {
     // Разрешённые теги
@@ -32,14 +41,20 @@ const sanitizeHtml = (html) => {
                     while (child.firstChild) node.insertBefore(child.firstChild, child)
                     node.removeChild(child)
                 } else {
-                    // Удаляем опасные атрибуты
+                    // Оставляем только безопасные атрибуты: у <a> — href с http/https/mailto/tel
+                    for (const attr of [...child.attributes]) {
+                        if (attr.name !== 'href') child.removeAttribute(attr.name)
+                    }
                     if (child.tagName.toLowerCase() === 'a') {
-                        child.removeAttribute('onclick')
-                        child.removeAttribute('onerror')
-                        const href = child.getAttribute('href')
-                        if (href && !href.includes('javascript:')) {
+                        const href = (child.getAttribute('href') || '').trim()
+                        if (/^(https?:|mailto:|tel:)/i.test(href)) {
                             child.setAttribute('target', '_blank')
+                            child.setAttribute('rel', 'noopener noreferrer')
+                        } else {
+                            child.removeAttribute('href')
                         }
+                    } else {
+                        child.removeAttribute('href')
                     }
                     walk(child)
                 }
@@ -70,7 +85,7 @@ const execCommand = (cmd, arg = null) => {
 }
 
 const insertLink = () => {
-    const url = prompt('Введите URL:', 'https://')
+    const url = prompt(t('editor.urlPrompt'), 'https://')
     if (url) {
         // Проверяем протокол
         const finalUrl = url.startsWith('http') ? url : `https://${url}`
@@ -120,14 +135,14 @@ const onBlur = () => {
         type="button"
         @click="() => execCommand('bold')"
         @mousedown.prevent
-        title="Жирный (Ctrl+B)"
+        :title="t('editor.bold')"
         class="h-7 px-2 rounded-[6px] font-black text-[12px] hover:bg-[var(--accent)]/20 transition text-[var(--text)]"
       >B</button>
       <button
         type="button"
         @click="() => execCommand('italic')"
         @mousedown.prevent
-        title="Курсив (Ctrl+I)"
+        :title="t('editor.italic')"
         class="h-7 px-2 rounded-[6px] italic font-black text-[12px] hover:bg-[var(--accent)]/20 transition text-[var(--text)]"
       >I</button>
 
@@ -137,7 +152,7 @@ const onBlur = () => {
         type="button"
         @click="() => execCommand('insertUnorderedList')"
         @mousedown.prevent
-        title="Маркированный список"
+        :title="t('editor.ulist')"
         class="h-7 w-7 flex items-center justify-center rounded-[6px] hover:bg-[var(--accent)]/20 transition text-[var(--text)]"
       >
         <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
@@ -154,7 +169,7 @@ const onBlur = () => {
         type="button"
         @click="() => execCommand('insertOrderedList')"
         @mousedown.prevent
-        title="Нумерованный список"
+        :title="t('editor.olist')"
         class="h-7 w-7 flex items-center justify-center rounded-[6px] hover:bg-[var(--accent)]/20 transition text-[var(--text)]"
       >
         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="1.5">
@@ -173,7 +188,7 @@ const onBlur = () => {
         type="button"
         @click="insertLink"
         @mousedown.prevent
-        title="Вставить ссылку"
+        :title="t('editor.link')"
         class="h-7 w-7 flex items-center justify-center rounded-[6px] hover:bg-[var(--accent)]/20 transition text-[var(--text)]"
       >
         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="1.5">

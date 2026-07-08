@@ -1,5 +1,6 @@
 <script setup>
 import { ref, computed, watch, onBeforeUnmount } from 'vue'
+import { useI18n } from 'vue-i18n'
 
 /**
  * Загрузка изображения с выбором области кропа перетаскиванием.
@@ -18,6 +19,8 @@ const props = defineProps({
     minHeight:   { type: Number, default: 675 },
 })
 const emit = defineEmits(['update:modelValue', 'update:cropX', 'update:cropY', 'removeExisting'])
+
+const { t } = useI18n()
 
 const fileInput  = ref(null)
 const frame      = ref(null)
@@ -52,7 +55,7 @@ watch(previewUrl, url => {
         natural.value = { w: img.naturalWidth, h: img.naturalHeight }
         // Предупреждаем о малом исходнике, но не блокируем (только для нового файла)
         if (objectUrl.value && (img.naturalWidth < props.minWidth || img.naturalHeight < props.minHeight)) {
-            warning.value = `Изображение меньше ${props.minWidth}×${props.minHeight}px — качество обложки может пострадать`
+            warning.value = t('imageUpload.smallWarning', { w: props.minWidth, h: props.minHeight })
         }
     }
     img.src = url
@@ -67,11 +70,11 @@ function onSelect(e) {
     if (!file) return
     error.value = ''
     if (!ACCEPTED.includes(file.type)) {
-        error.value = 'Допустимые форматы: JPG, PNG, WebP'
+        error.value = t('imageUpload.badFormat')
         return
     }
     if (file.size > props.maxBytes) {
-        error.value = `Файл больше ${Math.round(props.maxBytes / 1024 / 1024)} МБ`
+        error.value = t('imageUpload.tooBig', { mb: Math.round(props.maxBytes / 1024 / 1024) })
         return
     }
     emit('update:cropX', 50)
@@ -132,8 +135,8 @@ function onPointerUp(e) {
       class="flex w-full flex-col items-center justify-center gap-2 rounded-[11px] border-2 border-dashed border-[var(--field-border)] bg-[var(--field-bg)] py-8 text-[var(--text-secondary)] transition-colors hover:border-[var(--accent)] hover:text-[var(--accent)]"
     >
       <span class="flex h-9 w-9 items-center justify-center rounded-full bg-[var(--accent-tint)] text-xl font-bold text-[var(--accent)]">+</span>
-      <span class="text-[13px] font-semibold">Загрузить изображение</span>
-      <span class="text-[11px] text-[var(--text-muted)]">JPG, PNG, WebP · до 5 МБ · от {{ minWidth }}×{{ minHeight }}px</span>
+      <span class="text-[13px] font-semibold">{{ t('imageUpload.upload') }}</span>
+      <span class="text-[11px] text-[var(--text-muted)]">{{ t('imageUpload.formats', { mb: Math.round(maxBytes / 1024 / 1024), w: minWidth, h: minHeight }) }}</span>
     </button>
 
     <!-- Превью с драгом кадра -->
@@ -153,17 +156,17 @@ function onPointerUp(e) {
         @pointerup="onPointerUp"
         @pointercancel="onPointerUp"
       ></div>
-      <p v-if="dragAxis" class="mt-1.5 text-[11px] text-[var(--text-muted)]">Перетащите изображение, чтобы выбрать видимую область</p>
+      <p v-if="dragAxis" class="mt-1.5 text-[11px] text-[var(--text-muted)]">{{ t('imageUpload.dragHint') }}</p>
 
       <div class="mt-2 flex gap-2">
         <button
           type="button" @click="pick"
           class="rounded-[10px] border border-[var(--field-border)] px-3.5 py-[7px] text-[12px] font-semibold text-[var(--text-secondary)] transition-colors hover:bg-[var(--nav-hover)]"
-        >Заменить</button>
+        >{{ t('actions.replace') }}</button>
         <button
           type="button" @click="remove"
           class="rounded-[10px] px-3.5 py-[7px] text-[12px] font-semibold text-red transition-colors hover:bg-red/10"
-        >Удалить</button>
+        >{{ t('actions.delete') }}</button>
       </div>
     </template>
 

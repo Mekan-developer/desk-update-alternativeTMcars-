@@ -1,8 +1,11 @@
 <script setup>
 import { router } from '@inertiajs/vue3'
 import { Link } from '@inertiajs/vue3'
+import { useI18n } from 'vue-i18n'
 import AppLayout from '@/Layouts/AppLayout.vue'
 import StatusBadge from '@/Components/StatusBadge.vue'
+
+const { t } = useI18n()
 
 const props = defineProps({ user: Object, userListings: Array, stats: Object })
 
@@ -16,7 +19,7 @@ function formatDate(d) {
   <AppLayout>
     <template #header>
       <div class="flex items-center gap-2">
-        <Link :href="route('users.index')" class="text-muted hover:text-blue transition text-[14px]">Пользователи</Link>
+        <Link :href="route('users.index')" class="text-muted hover:text-blue transition text-[14px]">{{ t('nav.users') }}</Link>
         <span class="text-muted">/</span>
         <span>{{ user.name || user.phone }}</span>
       </div>
@@ -38,38 +41,38 @@ function formatDate(d) {
           </div>
 
           <div class="space-y-2.5 text-[13px]">
-            <div class="flex justify-between"><span class="text-muted font-semibold">Пол</span><span class="font-bold text-ink dark:text-slate-200">{{ user.gender === 'male' ? 'Мужской' : user.gender === 'female' ? 'Женский' : '—' }}</span></div>
-            <div class="flex justify-between"><span class="text-muted font-semibold">Дата рождения</span><span class="font-bold text-ink dark:text-slate-200 font-data">{{ user.birth_date ? formatDate(user.birth_date) : '—' }}</span></div>
-            <div class="flex justify-between"><span class="text-muted font-semibold">Регион</span><span class="font-bold text-ink dark:text-slate-200">{{ user.region?.name_ru || '—' }}</span></div>
-            <div class="flex justify-between"><span class="text-muted font-semibold">Город</span><span class="font-bold text-ink dark:text-slate-200">{{ user.city?.name_ru || '—' }}</span></div>
-            <div class="flex justify-between"><span class="text-muted font-semibold">Тариф</span><span class="font-bold text-ink dark:text-slate-200">{{ user.tariff?.name || 'Бесплатный' }}</span></div>
-            <div class="flex justify-between"><span class="text-muted font-semibold">Дата рег.</span><span class="font-bold font-data text-ink dark:text-slate-200">{{ formatDate(user.created_at) }}</span></div>
+            <div class="flex justify-between"><span class="text-muted font-semibold">{{ t('users.gender') }}</span><span class="font-bold text-ink dark:text-slate-200">{{ user.gender === 'male' ? t('users.male') : user.gender === 'female' ? t('users.female') : '—' }}</span></div>
+            <div class="flex justify-between"><span class="text-muted font-semibold">{{ t('users.birthDate') }}</span><span class="font-bold text-ink dark:text-slate-200 font-data">{{ user.birth_date ? formatDate(user.birth_date) : '—' }}</span></div>
+            <div class="flex justify-between"><span class="text-muted font-semibold">{{ t('common.region') }}</span><span class="font-bold text-ink dark:text-slate-200">{{ user.region?.name_ru || '—' }}</span></div>
+            <div class="flex justify-between"><span class="text-muted font-semibold">{{ t('common.city') }}</span><span class="font-bold text-ink dark:text-slate-200">{{ user.city?.name_ru || '—' }}</span></div>
+            <div class="flex justify-between"><span class="text-muted font-semibold">{{ t('common.tariff') }}</span><span class="font-bold text-ink dark:text-slate-200">{{ user.tariff?.name || t('users.freeTariff') }}</span></div>
+            <div class="flex justify-between"><span class="text-muted font-semibold">{{ t('users.colRegDate') }}</span><span class="font-bold font-data text-ink dark:text-slate-200">{{ formatDate(user.created_at) }}</span></div>
           </div>
 
           <div v-if="user.blocked_reason" class="mt-4 rounded-btn bg-red/10 p-3 text-[12px] font-semibold text-red">
-            <strong>Причина блокировки:</strong> {{ user.blocked_reason }}
+            <strong>{{ t('users.blockReason') }}</strong> {{ user.blocked_reason }}
           </div>
 
           <div v-if="user.note" class="mt-4 rounded-btn bg-surface p-3 text-[12px] text-muted dark:bg-dbg">
-            <strong>Примечание:</strong> {{ user.note }}
+            <strong>{{ t('users.note') }}</strong> {{ user.note }}
           </div>
         </div>
 
         <!-- Stats -->
         <div class="rounded-card bg-white shadow-soft dark:bg-dcard p-5">
-          <h3 class="text-[13px] font-extrabold text-ink dark:text-slate-100 mb-3 uppercase tracking-wide">Статистика</h3>
+          <h3 class="text-[13px] font-extrabold text-ink dark:text-slate-100 mb-3 uppercase tracking-wide">{{ t('users.stats') }}</h3>
           <div class="grid grid-cols-3 gap-3 text-center">
             <div>
               <div class="font-data text-[20px] font-black text-blue">{{ stats.listings }}</div>
-              <div class="text-[11px] text-muted font-semibold">Объявл.</div>
+              <div class="text-[11px] text-muted font-semibold">{{ t('users.listingsShort') }}</div>
             </div>
             <div>
               <div class="font-data text-[20px] font-black text-teal">{{ stats.videos }}</div>
-              <div class="text-[11px] text-muted font-semibold">Роликов</div>
+              <div class="text-[11px] text-muted font-semibold">{{ t('users.videosShort') }}</div>
             </div>
             <div>
               <div class="font-data text-[20px] font-black text-red">{{ stats.complaints }}</div>
-              <div class="text-[11px] text-muted font-semibold">Жалоб</div>
+              <div class="text-[11px] text-muted font-semibold">{{ t('users.complaintsShort') }}</div>
             </div>
           </div>
         </div>
@@ -80,27 +83,27 @@ function formatDate(d) {
             v-if="user.status === 'active'"
             @click="router.patch(route('users.block', user.id))"
             class="w-full rounded-btn border-2 border-red/20 bg-red/5 py-[9px] text-[13px] font-bold text-red hover:bg-red hover:text-white transition"
-          >Заблокировать</button>
+          >{{ t('actions.block') }}</button>
           <button
             v-else
             @click="router.patch(route('users.unblock', user.id))"
             class="w-full rounded-btn border-2 border-green/20 bg-green/5 py-[9px] text-[13px] font-bold text-green hover:bg-green hover:text-white transition"
-          >Разблокировать</button>
+          >{{ t('actions.unblock') }}</button>
         </div>
       </div>
 
       <!-- Listings -->
       <div class="rounded-card bg-white shadow-soft dark:bg-dcard overflow-hidden">
         <div class="px-[22px] py-[18px] border-b border-line dark:border-dline">
-          <span class="text-[15px] font-extrabold text-ink dark:text-slate-100">Объявления пользователя</span>
+          <span class="text-[15px] font-extrabold text-ink dark:text-slate-100">{{ t('users.userListings') }}</span>
         </div>
         <table class="w-full">
           <thead class="bg-surface/50 dark:bg-dbg/50">
             <tr>
-              <th class="px-4 py-[11px] text-left text-[11px] font-bold uppercase tracking-[.07em] text-muted border-b-2 border-line dark:border-dline">Название</th>
-              <th class="px-4 py-[11px] text-left text-[11px] font-bold uppercase tracking-[.07em] text-muted border-b-2 border-line dark:border-dline">Категория</th>
-              <th class="px-4 py-[11px] text-left text-[11px] font-bold uppercase tracking-[.07em] text-muted border-b-2 border-line dark:border-dline">Статус</th>
-              <th class="px-4 py-[11px] text-left text-[11px] font-bold uppercase tracking-[.07em] text-muted border-b-2 border-line dark:border-dline">Дата</th>
+              <th class="px-4 py-[11px] text-left text-[11px] font-bold uppercase tracking-[.07em] text-muted border-b-2 border-line dark:border-dline">{{ t('common.title') }}</th>
+              <th class="px-4 py-[11px] text-left text-[11px] font-bold uppercase tracking-[.07em] text-muted border-b-2 border-line dark:border-dline">{{ t('common.category') }}</th>
+              <th class="px-4 py-[11px] text-left text-[11px] font-bold uppercase tracking-[.07em] text-muted border-b-2 border-line dark:border-dline">{{ t('common.status') }}</th>
+              <th class="px-4 py-[11px] text-left text-[11px] font-bold uppercase tracking-[.07em] text-muted border-b-2 border-line dark:border-dline">{{ t('common.date') }}</th>
               <th class="px-4 py-[11px] text-left text-[11px] font-bold uppercase tracking-[.07em] text-muted border-b-2 border-line dark:border-dline"></th>
             </tr>
           </thead>
@@ -117,7 +120,7 @@ function formatDate(d) {
               </td>
             </tr>
             <tr v-if="!userListings?.length">
-              <td colspan="5" class="px-4 py-8 text-center text-[13px] text-muted">Объявлений нет</td>
+              <td colspan="5" class="px-4 py-8 text-center text-[13px] text-muted">{{ t('users.noListings') }}</td>
             </tr>
           </tbody>
         </table>

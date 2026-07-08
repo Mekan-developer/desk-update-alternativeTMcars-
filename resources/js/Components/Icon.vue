@@ -134,6 +134,9 @@ const ICONS = {
         { isRect: true, x: 5, y: 11, w: 14, h: 9, rx: 2 },
         { isPath: true, d: 'M8 11V7.5a4 4 0 0 1 8 0V11' },
     ],
+    close: [
+        { isPath: true, d: 'M6 6l12 12M18 6L6 18' },
+    ],
 }
 
 const shapes = computed(() => ICONS[props.kind] || ICONS.grid)

@@ -1,12 +1,15 @@
 <script setup>
 import { ref, computed } from 'vue'
 import { router } from '@inertiajs/vue3'
+import { useI18n } from 'vue-i18n'
 import AppLayout from '@/Layouts/AppLayout.vue'
 import AppDrawer from '@/Components/AppDrawer.vue'
 import DrawerField from '@/Components/DrawerField.vue'
 import ToggleSwitch from '@/Components/ToggleSwitch.vue'
 import IconPicker from '@/Components/IconPicker.vue'
 import Icon from '@/Components/Icon.vue'
+
+const { t } = useI18n()
 
 const props = defineProps({ categories: Array, icons: Array })
 
@@ -92,8 +95,8 @@ function save() {
 
 function destroy(cat) {
     const message = cat.children?.length
-        ? `Удалить «${cat.name_ru}» вместе со всеми подкатегориями?`
-        : `Удалить «${cat.name_ru}»?`
+        ? t('categories.confirmDeleteWithChildren', { name: cat.name_ru })
+        : t('categories.confirmDelete', { name: cat.name_ru })
     if (confirm(message)) {
         router.delete(route('categories.destroy', cat.id))
     }
@@ -139,10 +142,10 @@ const canSave = computed(() => form.value.name_ru.trim().length > 0)
 
 <template>
   <AppLayout>
-    <template #header>Категории</template>
+    <template #header>{{ t('nav.categories') }}</template>
 
     <template #actions>
-      <button @click="openCreate()" class="rounded-btn bg-blue px-4 py-2 text-[13px] font-bold text-white hover:opacity-90 transition">+ Добавить категорию</button>
+      <button @click="openCreate()" class="rounded-btn bg-blue px-4 py-2 text-[13px] font-bold text-white hover:opacity-90 transition">{{ t('categories.addBtn') }}</button>
     </template>
 
     <div class="rounded-card bg-white shadow-soft dark:bg-dcard overflow-hidden">
@@ -150,11 +153,11 @@ const canSave = computed(() => form.value.name_ru.trim().length > 0)
         <thead class="bg-surface/50 dark:bg-dbg/50">
           <tr>
             <th class="px-4 py-[11px] text-left text-[11px] font-bold uppercase tracking-[.07em] text-muted border-b-2 border-line dark:border-dline w-16">#</th>
-            <th class="px-4 py-[11px] text-left text-[11px] font-bold uppercase tracking-[.07em] text-muted border-b-2 border-line dark:border-dline">Название</th>
-            <th class="px-4 py-[11px] text-left text-[11px] font-bold uppercase tracking-[.07em] text-muted border-b-2 border-line dark:border-dline">Туркменский</th>
-            <th class="px-4 py-[11px] text-left text-[11px] font-bold uppercase tracking-[.07em] text-muted border-b-2 border-line dark:border-dline w-20">Уровень</th>
-            <th class="px-4 py-[11px] text-left text-[11px] font-bold uppercase tracking-[.07em] text-muted border-b-2 border-line dark:border-dline">Статус</th>
-            <th class="px-4 py-[11px] text-right text-[11px] font-bold uppercase tracking-[.07em] text-muted border-b-2 border-line dark:border-dline">Действия</th>
+            <th class="px-4 py-[11px] text-left text-[11px] font-bold uppercase tracking-[.07em] text-muted border-b-2 border-line dark:border-dline">{{ t('categories.colName') }}</th>
+            <th class="px-4 py-[11px] text-left text-[11px] font-bold uppercase tracking-[.07em] text-muted border-b-2 border-line dark:border-dline">{{ t('categories.colTk') }}</th>
+            <th class="px-4 py-[11px] text-left text-[11px] font-bold uppercase tracking-[.07em] text-muted border-b-2 border-line dark:border-dline w-20">{{ t('categories.colLevel') }}</th>
+            <th class="px-4 py-[11px] text-left text-[11px] font-bold uppercase tracking-[.07em] text-muted border-b-2 border-line dark:border-dline">{{ t('common.status') }}</th>
+            <th class="px-4 py-[11px] text-right text-[11px] font-bold uppercase tracking-[.07em] text-muted border-b-2 border-line dark:border-dline">{{ t('common.actions') }}</th>
           </tr>
         </thead>
         <tbody>
@@ -202,51 +205,51 @@ const canSave = computed(() => form.value.name_ru.trim().length > 0)
               </span>
             </td>
             <td class="px-4 py-[12px] text-[13px] border-b border-line dark:border-dline">
-              <span :class="cat.is_active ? 'text-green font-bold' : 'text-muted'">{{ cat.is_active ? 'Активна' : 'Скрыта' }}</span>
+              <span :class="cat.is_active ? 'text-green font-bold' : 'text-muted'">{{ cat.is_active ? t('categories.active') : t('categories.hidden') }}</span>
             </td>
             <td class="px-4 py-[12px] text-[13px] border-b border-line dark:border-dline">
               <div class="flex items-center justify-end gap-1.5">
-                <button @click="toggleActive(cat)" :title="cat.is_active ? 'Скрыть' : 'Показать'"
+                <button @click="toggleActive(cat)" :title="cat.is_active ? t('actions.hide') : t('actions.show')"
                   class="flex h-[28px] w-[28px] items-center justify-center rounded-[7px] bg-surface text-muted transition hover:bg-blue hover:text-white dark:bg-dbg">
                   <Icon :kind="cat.is_active ? 'eye' : 'eyeOff'" :size="13" />
                 </button>
-                <button v-if="cat.level < 3" @click="openCreate(cat)" title="Добавить подкатегорию"
+                <button v-if="cat.level < 3" @click="openCreate(cat)" :title="t('categories.addSub')"
                   class="flex h-[28px] w-[28px] items-center justify-center rounded-[7px] bg-blue-light text-blue transition hover:bg-blue hover:text-white">
                   <Icon kind="plus" :size="13" />
                 </button>
-                <button @click="openEdit(cat)" title="Редактировать"
+                <button @click="openEdit(cat)" :title="t('actions.edit')"
                   class="flex h-[28px] w-[28px] items-center justify-center rounded-[7px] bg-surface text-muted transition hover:bg-blue hover:text-white dark:bg-dbg">
                   <Icon kind="pencil" :size="13" />
                 </button>
-                <button @click="destroy(cat)" title="Удалить"
+                <button @click="destroy(cat)" :title="t('actions.delete')"
                   class="flex h-[28px] w-[28px] items-center justify-center rounded-[7px] bg-red/10 text-red transition hover:bg-red hover:text-white">
                   <Icon kind="trash" :size="13" />
                 </button>
               </div>
             </td>
           </tr>
-          <tr v-if="!flatList.length"><td colspan="6" class="px-4 py-10 text-center text-[13px] text-muted">Нет категорий</td></tr>
+          <tr v-if="!flatList.length"><td colspan="6" class="px-4 py-10 text-center text-[13px] text-muted">{{ t('categories.empty') }}</td></tr>
         </tbody>
       </table>
     </div>
 
-    <AppDrawer :open="drawerOpen" :title="editItem ? 'Редактировать категорию' : 'Новая категория'" @close="drawerOpen = false">
+    <AppDrawer :open="drawerOpen" :title="editItem ? t('categories.editTitle') : t('categories.newTitle')" @close="drawerOpen = false">
       <div class="space-y-4 p-5">
-        <DrawerField label="Родительская категория">
+        <DrawerField :label="t('categories.parentCategory')">
           <select v-model="form.parent_id" class="w-full rounded-btn border-2 border-line bg-surface py-[9px] px-[14px] text-[13px] font-semibold text-ink outline-none focus:border-blue dark:bg-dbg dark:border-dline dark:text-slate-200">
-            <option value="">— Корневая категория —</option>
+            <option value="">{{ t('categories.rootOption') }}</option>
             <option v-for="p in parentOptions" :key="p.id" :value="p.id">
               {{ '— '.repeat(p.depth) }}{{ p.name_ru }}
             </option>
           </select>
         </DrawerField>
-        <DrawerField label="Название (рус)" required :error="errors.name_ru">
+        <DrawerField :label="t('categories.nameRu')" required :error="errors.name_ru">
           <input v-model="form.name_ru" class="w-full rounded-btn border-2 border-line bg-surface py-[9px] px-[14px] text-[13px] font-semibold text-ink outline-none focus:border-blue dark:bg-dbg dark:border-dline dark:text-slate-200" :class="errors.name_ru ? 'border-red' : ''" />
         </DrawerField>
-        <DrawerField label="Название (тур)" :error="errors.name_tk">
+        <DrawerField :label="t('categories.nameTk')" :error="errors.name_tk">
           <input v-model="form.name_tk" class="w-full rounded-btn border-2 border-line bg-surface py-[9px] px-[14px] text-[13px] font-semibold text-ink outline-none focus:border-blue dark:bg-dbg dark:border-dline dark:text-slate-200" :class="errors.name_tk ? 'border-red' : ''" />
         </DrawerField>
-        <DrawerField label="Иконка" :error="errors.icon || errors.icon_path">
+        <DrawerField :label="t('categories.icon')" :error="errors.icon || errors.icon_path">
           <IconPicker
             v-model:icon-path="form.icon_path"
             v-model:icon-file="form.icon"
@@ -254,14 +257,14 @@ const canSave = computed(() => form.value.name_ru.trim().length > 0)
             :existing-url="editItem?.icon_url"
           />
         </DrawerField>
-        <DrawerField label="Активна">
+        <DrawerField :label="t('categories.activeField')">
           <ToggleSwitch v-model="form.is_active" />
-          <p class="mt-1.5 text-[11px] text-muted">Скрытые категории не показываются в приложении</p>
+          <p class="mt-1.5 text-[11px] text-muted">{{ t('categories.hiddenHint') }}</p>
         </DrawerField>
       </div>
       <template #footer>
-        <button @click="drawerOpen = false" class="flex-1 rounded-btn border-2 border-line py-[10px] text-[13px] font-bold text-muted hover:border-blue hover:text-blue transition dark:border-dline">Отмена</button>
-        <button @click="save" :disabled="!canSave" class="flex-1 rounded-btn bg-blue py-[10px] text-[13px] font-bold text-white hover:opacity-90 transition disabled:opacity-40 disabled:cursor-not-allowed">{{ editItem ? 'Сохранить' : 'Создать' }}</button>
+        <button @click="drawerOpen = false" class="flex-1 rounded-btn border-2 border-line py-[10px] text-[13px] font-bold text-muted hover:border-blue hover:text-blue transition dark:border-dline">{{ t('actions.cancel') }}</button>
+        <button @click="save" :disabled="!canSave" class="flex-1 rounded-btn bg-blue py-[10px] text-[13px] font-bold text-white hover:opacity-90 transition disabled:opacity-40 disabled:cursor-not-allowed">{{ editItem ? t('actions.save') : t('actions.create') }}</button>
       </template>
     </AppDrawer>
   </AppLayout>

@@ -1,10 +1,14 @@
 <script setup>
+import { useI18n } from 'vue-i18n'
+
 defineProps({
     open:  { type: Boolean, default: false },
-    title: { type: String, default: 'Форма' },
+    title: { type: String, default: '' },
     width: { type: String, default: '480px' },
 })
 defineEmits(['close'])
+
+const { t } = useI18n()
 </script>
 
 <template>
@@ -21,7 +25,7 @@ defineEmits(['close'])
         >
           <!-- Header -->
           <div class="flex items-center justify-between px-6 py-5 border-b border-line dark:border-dline">
-            <h2 class="text-[16px] font-extrabold text-ink dark:text-slate-100">{{ title }}</h2>
+            <h2 class="text-[16px] font-extrabold text-ink dark:text-slate-100">{{ title || t('drawer.defaultTitle') }}</h2>
             <button
               @click="$emit('close')"
               class="flex h-8 w-8 items-center justify-center rounded-[7px] text-muted hover:bg-surface dark:hover:bg-white/10 transition"
