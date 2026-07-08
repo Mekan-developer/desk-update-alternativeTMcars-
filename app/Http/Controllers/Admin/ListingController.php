@@ -37,7 +37,7 @@ class ListingController extends Controller
     public function show(Listing $listing)
     {
         return Inertia::render('Listings/Show', [
-            'listing'          => $listing->load('user', 'category', 'region', 'city', 'media', 'rejectionReason'),
+            'listing'          => $listing->load('user', 'category.parent.parent', 'region', 'city', 'media', 'rejectionReason'),
             'rejectionReasons' => RejectionReason::where('type', 'listing')->where('is_active', true)->get(),
         ]);
     }
