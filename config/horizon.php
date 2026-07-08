@@ -199,7 +199,10 @@ return [
     'defaults' => [
         'supervisor-1' => [
             'connection' => 'redis',
-            'queue' => ['default'],
+            // default/notifications/media — см. CLAUDE.md; раньше слушалась
+            // только default, из-за чего ProcessListingImagesJob/ProcessVideoJob
+            // и SendPushNotificationJob никогда не выполнялись
+            'queue' => ['default', 'notifications', 'media'],
             'balance' => 'auto',
             'autoScalingStrategy' => 'time',
             'maxProcesses' => 1,

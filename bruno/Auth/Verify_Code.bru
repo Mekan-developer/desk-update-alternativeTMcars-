@@ -7,6 +7,7 @@ meta {
 post {
   url: {{base_url}}/v1/auth/verify
   body: json
+  auth: none
 }
 
 headers {
@@ -17,7 +18,7 @@ headers {
 body:json {
   {
     "phone": "+99361123456",
-    "code": "000000",
+    "code": "018926",
     "fcm_token": null
   }
 }
@@ -28,20 +29,20 @@ script:post-response {
   }
 }
 
-docs {
-  Код взять из storage/logs/laravel.log (dev-режим).
-  Новый номер — регистрация (is_new=true), существующий — вход.
-  Токен автоматически сохраняется в переменную окружения {{token}}.
-}
-
 tests {
   test("status is 200", function() {
     expect(res.getStatus()).to.equal(200);
   });
-
+  
   test("returns token and user", function() {
     const data = res.getBody().data;
     expect(data).to.have.property('token');
     expect(data).to.have.property('user');
   });
+}
+
+docs {
+  Код взять из storage/logs/laravel.log (dev-режим).
+  Новый номер — регистрация (is_new=true), существующий — вход.
+  Токен автоматически сохраняется в переменную окружения {{token}}.
 }

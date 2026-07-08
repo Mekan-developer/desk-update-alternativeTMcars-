@@ -6,7 +6,20 @@
       "Bash(python3 -c \"import json,sys; d=json.load\\(sys.stdin\\); [print\\(k,v.get\\('version',''\\)\\) for k,v in d.get\\('packages',{}\\).items\\(\\) if not v.get\\('version',''\\)]\")",
       "Bash(DB_DATABASE=/tmp/claude-1000/-home-projects-doskaObnawleniya/894e10b5-6c79-4cdc-860b-2511cc4d9d59/scratchpad/test_categories.sqlite php artisan migrate --path=database/migrations/2026_07_05_000003_make_categories_name_tk_nullable.php --force)",
       "Bash(DB_DATABASE=/tmp/claude-1000/-home-projects-doskaObnawleniya/894e10b5-6c79-4cdc-860b-2511cc4d9d59/scratchpad/test_categories.sqlite php artisan test --filter=CategoryTest)",
-      "Bash(composer show *)"
+      "Bash(composer show *)",
+      "Bash(curl -s http://localhost:8000/api/v1/regions)",
+      "Bash(netsh.exe advfirewall *)",
+      "Bash(redis-cli LLEN desc_database_queues:media)",
+      "Bash(redis-cli LLEN desc_database_queues:default)",
+      "Bash(redis-cli LLEN desc_database_queues:notifications)",
+      "Bash(redis-cli SMEMBERS desc_horizon:measured_queues)",
+      "Bash(pkill -f \"artisan serve --port=8123\")",
+      "Bash(grep -rn '$this->route\\(' /home/projects/doskaObnawleniya/app/Http/Requests)",
+      "Bash(node -e \"require.resolve\\('playwright'\\)\")",
+      "Bash(npx --yes playwright --version)",
+      "Bash(npm ls *)",
+      "Bash(timeout 90 npx --yes playwright install chromium --with-deps)",
+      "Bash(git add *)"
     ]
   }
 }
