@@ -26,6 +26,18 @@ class NewsService
         return $this->newsRepository->paginate($filters);
     }
 
+    public function counts(): array
+    {
+        $published = $this->newsRepository->countByPublished(true);
+        $draft     = $this->newsRepository->countByPublished(false);
+
+        return [
+            'all'       => $published + $draft,
+            'published' => $published,
+            'draft'     => $draft,
+        ];
+    }
+
     public function store(array $data, User $author, ?UploadedFile $image = null, array $crop = []): News
     {
         if ($image) {

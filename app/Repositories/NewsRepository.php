@@ -12,11 +12,19 @@ class NewsRepository implements NewsRepositoryInterface
     {
         return News::with('author')
             ->when($filters['type'] ?? null, fn($q, $t) => $q->where('type', $t))
-            ->when($filters['published'] ?? null, fn($q, $p) => $q->where('is_published', (bool) $p))
+            ->when(
+                isset($filters['published']) && $filters['published'] !== '',
+                fn($q) => $q->where('is_published', filter_var($filters['published'], FILTER_VALIDATE_BOOLEAN)),
+            )
             ->when($filters['search'] ?? null, fn($q, $s) => $q->where('title_ru', 'like', "%$s%"))
             ->latest()
             ->paginate($perPage)
             ->withQueryString();
+    }
+
+    public function countByPublished(bool $published): int
+    {
+        return News::where('is_published', $published)->count();
     }
 
     public function find(int $id): News

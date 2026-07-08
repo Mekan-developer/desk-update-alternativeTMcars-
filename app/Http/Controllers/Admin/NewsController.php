@@ -20,6 +20,7 @@ class NewsController extends Controller
         return Inertia::render('News/Index', [
             'news'    => $this->newsService->list($request->only('search', 'type', 'published')),
             'filters' => $request->only('search', 'type', 'published'),
+            'counts'  => $this->newsService->counts(),
         ]);
     }
 
