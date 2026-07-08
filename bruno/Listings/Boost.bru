@@ -1,0 +1,33 @@
+meta {
+  name: Поднять объявление в выдаче
+  type: http
+  seq: 7
+}
+
+post {
+  url: {{base_url}}/v1/listings/1/boost
+  body: none
+}
+
+headers {
+  Accept: application/json
+  Accept-Language: ru
+  Authorization: Bearer {{token}}
+}
+
+docs {
+  Поднимать можно только своё approved-объявление (403 иначе).
+  Между поднятиями действует интервал (settings.boost_interval_hours,
+  по умолчанию 24 ч) — при нарушении 422 с сообщением.
+  Онлайн-оплаты нет — работает по внутренним правилам тарифа.
+}
+
+tests {
+  test("status is 200", function() {
+    expect(res.getStatus()).to.equal(200);
+  });
+
+  test("listing is boosted", function() {
+    expect(res.getBody().data.is_boosted).to.equal(true);
+  });
+}

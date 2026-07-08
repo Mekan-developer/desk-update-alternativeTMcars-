@@ -13,13 +13,13 @@ class RegionController extends Controller
     ) {}
 
     /**
-     * Список активных регионов с городами для мобильного приложения.
+     * Список активных регионов с городами и районами для мобильного приложения.
      * GET /api/v1/regions
      */
     public function index()
     {
         return response()->json([
-            'data' => RegionResource::collection($this->regionService->activeList()),
+            'data' => RegionResource::collection($this->regionService->activeListWithDistricts()),
             'message' => 'Success',
         ]);
     }

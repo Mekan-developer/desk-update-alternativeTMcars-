@@ -12,7 +12,12 @@ class Listing extends Model
         'rejection_reason_id', 'is_boosted', 'boosted_at',
     ];
 
-    protected $casts = ['tags' => 'array', 'location' => 'array'];
+    protected $casts = [
+        'tags'       => 'array',
+        'location'   => 'array',
+        'is_boosted' => 'boolean',
+        'boosted_at' => 'datetime',
+    ];
 
     public function user()            { return $this->belongsTo(User::class); }
     public function category()        { return $this->belongsTo(Category::class); }

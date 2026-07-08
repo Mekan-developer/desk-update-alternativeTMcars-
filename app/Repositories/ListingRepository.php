@@ -3,14 +3,16 @@
 namespace App\Repositories;
 
 use App\Models\Listing;
+use App\Models\ListingMedia;
 use App\Repositories\Interfaces\ListingRepositoryInterface;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
+use Illuminate\Database\Eloquent\Builder;
 
 class ListingRepository implements ListingRepositoryInterface
 {
     public function paginate(array $filters, int $perPage = 25): LengthAwarePaginator
     {
-        return Listing::with('user', 'category', 'region', 'city', 'media')
+        return Listing::with('user', 'category.parent.parent', 'region', 'city', 'media')
             ->when($filters['status'] ?? null, fn($q, $s) => $q->where('status', $s))
             ->when($filters['category_id'] ?? null, fn($q, $c) => $q->where('category_id', $c))
             ->when($filters['search'] ?? null, fn($q, $s) => $q->where('title', 'like', "%$s%"))
@@ -21,7 +23,7 @@ class ListingRepository implements ListingRepositoryInterface
 
     public function find(int $id): Listing
     {
-        return Listing::with('user', 'category', 'region', 'city', 'media', 'rejectionReason')->findOrFail($id);
+        return Listing::with('user', 'category.parent.parent', 'region', 'city', 'media', 'rejectionReason')->findOrFail($id);
     }
 
     public function create(array $data): Listing
@@ -50,5 +52,91 @@ class ListingRepository implements ListingRepositoryInterface
         return Listing::where('user_id', $userId)
             ->where('status', 'approved')
             ->count();
+    }
+
+    public function paginateForApi(array $filters, int $perPage = 20): LengthAwarePaginator
+    {
+        $query = Listing::with('user', 'category.parent.parent', 'region', 'city', 'media')
+            ->where('status', 'approved')
+            ->when($filters['category_ids'] ?? null, fn ($q, $ids) => $q->whereIn('category_id', $ids))
+            ->when($filters['region_id'] ?? null, fn ($q, $id) => $q->where('region_id', $id))
+            ->when($filters['city_id'] ?? null, fn ($q, $id) => $q->where('city_id', $id))
+            ->when($filters['type'] ?? null, fn ($q, $t) => $q->where('type', $t))
+            ->when(isset($filters['price_min']), fn ($q) => $q->where('price', '>=', $filters['price_min']))
+            ->when(isset($filters['price_max']), fn ($q) => $q->where('price', '<=', $filters['price_max']))
+            ->when($filters['search'] ?? null, function ($q, $s) {
+                $term = '%'.mb_strtolower($s).'%';
+                $q->where(fn ($w) => $w
+                    ->whereRaw('LOWER(title) LIKE ?', [$term])
+                    ->orWhereRaw('LOWER(description) LIKE ?', [$term]));
+            });
+
+        match ($filters['sort'] ?? 'latest') {
+            'price_asc'  => $query->orderByRaw('price IS NULL')->orderBy('price'),
+            'price_desc' => $query->orderByRaw('price IS NULL')->orderByDesc('price'),
+            'nearest'    => $this->orderByDistance($query, (float) $filters['lat'], (float) $filters['lng']),
+            default      => $query->orderByDesc('is_boosted')->latest(),
+        };
+
+        return $query->latest('id')->paginate($perPage)->withQueryString();
+    }
+
+    public function paginateByUser(int $userId, array $filters, int $perPage = 20): LengthAwarePaginator
+    {
+        return Listing::with('category.parent.parent', 'region', 'city', 'media', 'rejectionReason')
+            ->where('user_id', $userId)
+            ->when($filters['status'] ?? null, fn ($q, $s) => $q->where('status', $s))
+            ->latest()
+            ->paginate($perPage)
+            ->withQueryString();
+    }
+
+    public function countByUserAndStatuses(int $userId, array $statuses): int
+    {
+        return Listing::where('user_id', $userId)->whereIn('status', $statuses)->count();
+    }
+
+    public function countBoostedByUser(int $userId): int
+    {
+        return Listing::where('user_id', $userId)->where('is_boosted', true)->count();
+    }
+
+    public function incrementViews(Listing $listing): void
+    {
+        $listing->increment('views');
+    }
+
+    public function createMedia(Listing $listing, array $attributes): ListingMedia
+    {
+        return $listing->media()->create($attributes);
+    }
+
+    public function deleteMedia(ListingMedia $media): void
+    {
+        $media->delete();
+    }
+
+    public function maxMediaOrder(Listing $listing): int
+    {
+        return (int) $listing->media()->max('order');
+    }
+
+    /**
+     * Сортировка по близости: приближённый квадрат расстояния в градусах,
+     * долготная дельта сжата на cos(широты). JSON-извлечение зависит от драйвера.
+     */
+    private function orderByDistance(Builder $query, float $lat, float $lng): void
+    {
+        [$latExpr, $lngExpr] = $query->getConnection()->getDriverName() === 'pgsql'
+            ? ["((location->>'lat')::float)", "((location->>'lng')::float)"]
+            : ["CAST(json_extract(location, '$.lat') AS REAL)", "CAST(json_extract(location, '$.lng') AS REAL)"];
+
+        $cosSquared = cos(deg2rad($lat)) ** 2;
+
+        $query->whereNotNull('location')
+            ->orderByRaw(
+                "($latExpr - ?) * ($latExpr - ?) + ($lngExpr - ?) * ($lngExpr - ?) * ?",
+                [$lat, $lat, $lng, $lng, $cosSquared]
+            );
     }
 }

@@ -10,6 +10,7 @@ class BoostListingAction
 {
     public function __construct(
         private readonly ListingService $listingService,
+        private readonly CheckBoostLimitAction $checkBoostLimitAction,
     ) {}
 
     public function execute(Listing $listing): void
@@ -19,6 +20,8 @@ class BoostListingAction
                 'listing' => [__('messages.boost_interval_not_passed')],
             ]);
         }
+
+        $this->checkBoostLimitAction->execute($listing);
 
         $this->listingService->boost($listing);
     }

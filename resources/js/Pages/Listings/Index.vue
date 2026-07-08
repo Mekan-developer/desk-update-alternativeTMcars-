@@ -1,10 +1,14 @@
 <script setup>
-import { ref } from 'vue'
+import { ref, computed } from 'vue'
 import { Link, router } from '@inertiajs/vue3'
+import { useI18n } from 'vue-i18n'
 import AppLayout from '@/Layouts/AppLayout.vue'
 import Pagination from '@/Components/Pagination.vue'
 import StatusBadge from '@/Components/StatusBadge.vue'
 import ConfirmModal from '@/Components/ConfirmModal.vue'
+import SearchInput from '@/Components/SearchInput.vue'
+
+const { t } = useI18n()
 
 const props = defineProps({
     listings: Object, categories: Array, rejectionReasons: Array, filters: Object, counts: Object,
@@ -13,6 +17,13 @@ const props = defineProps({
 const search     = ref(props.filters?.search      || '')
 const statusFil  = ref(props.filters?.status      || '')
 const catId      = ref(props.filters?.category_id || '')
+
+const tabs = computed(() => [
+    { label: t('listings.tabAll'), value: '' },
+    { label: t('listings.tabPending', { n: props.counts.pending }), value: 'pending' },
+    { label: t('listings.tabApproved', { n: props.counts.approved }), value: 'approved' },
+    { label: t('listings.tabRejected', { n: props.counts.rejected }), value: 'rejected' },
+])
 
 function applyFilters() {
     router.get(route('listings.index'), { search: search.value, status: statusFil.value, category_id: catId.value }, { preserveState: true, replace: true })
@@ -43,22 +54,24 @@ function formatDate(d) {
 }
 function formatPrice(p) {
     if (!p) return '—'
-    return Number(p).toLocaleString('ru') + ' ₺'
+    return Number(p).toLocaleString('ru') + ' TMT'
+}
+function categoryPath(category) {
+    if (!category) return '—'
+    const chain = []
+    let c = category
+    while (c) { chain.unshift(c.name_ru); c = c.parent }
+    return chain.join(' → ')
 }
 </script>
 
 <template>
   <AppLayout>
-    <template #header>Объявления</template>
+    <template #header>{{ t('nav.listings') }}</template>
 
     <!-- Tabs -->
     <div class="mb-4 flex gap-2 flex-wrap">
-      <button v-for="tab in [
-        { label: 'Все', value: '' },
-        { label: `На проверке (${counts.pending})`, value: 'pending' },
-        { label: `Одобренные (${counts.approved})`, value: 'approved' },
-        { label: `Отклонённые (${counts.rejected})`, value: 'rejected' },
-      ]" :key="tab.value"
+      <button v-for="tab in tabs" :key="tab.value"
         @click="setStatus(tab.value)"
         class="rounded-btn px-4 py-2 text-[13px] font-bold transition"
         :class="statusFil === tab.value ? 'bg-blue text-white' : 'bg-white text-muted hover:text-ink shadow-soft dark:bg-dcard dark:hover:text-slate-200'"
@@ -67,10 +80,9 @@ function formatPrice(p) {
 
     <!-- Filters -->
     <div class="mb-4 flex flex-wrap items-center gap-3">
-      <input v-model="search" @keydown.enter="applyFilters" type="text" placeholder="Поиск по названию…"
-        class="w-64 rounded-btn border-2 border-line bg-surface py-[9px] px-[14px] text-[13px] font-semibold text-ink outline-none transition focus:border-blue dark:bg-dbg dark:border-dline dark:text-slate-200" />
+      <SearchInput v-model="search" @submit="applyFilters" :placeholder="t('listings.searchPlaceholder')" class="w-64" />
       <select v-model="catId" @change="applyFilters" class="rounded-btn border-2 border-line bg-surface py-[9px] px-[14px] text-[13px] font-semibold text-ink outline-none transition focus:border-blue dark:bg-dbg dark:border-dline dark:text-slate-200">
-        <option value="">Все категории</option>
+        <option value="">{{ t('listings.allCategories') }}</option>
         <option v-for="c in categories" :key="c.id" :value="c.id">{{ c.name_ru }}</option>
       </select>
     </div>
@@ -80,18 +92,20 @@ function formatPrice(p) {
       <table class="w-full">
         <thead class="bg-surface/50 dark:bg-dbg/50">
           <tr>
-            <th class="px-4 py-[11px] text-left text-[11px] font-bold uppercase tracking-[.07em] text-muted border-b-2 border-line dark:border-dline">Объявление</th>
-            <th class="px-4 py-[11px] text-left text-[11px] font-bold uppercase tracking-[.07em] text-muted border-b-2 border-line dark:border-dline">Автор</th>
-            <th class="px-4 py-[11px] text-left text-[11px] font-bold uppercase tracking-[.07em] text-muted border-b-2 border-line dark:border-dline">Категория</th>
-            <th class="px-4 py-[11px] text-left text-[11px] font-bold uppercase tracking-[.07em] text-muted border-b-2 border-line dark:border-dline">Цена</th>
-            <th class="px-4 py-[11px] text-left text-[11px] font-bold uppercase tracking-[.07em] text-muted border-b-2 border-line dark:border-dline">Просмотры</th>
-            <th class="px-4 py-[11px] text-left text-[11px] font-bold uppercase tracking-[.07em] text-muted border-b-2 border-line dark:border-dline">Статус</th>
-            <th class="px-4 py-[11px] text-left text-[11px] font-bold uppercase tracking-[.07em] text-muted border-b-2 border-line dark:border-dline">Дата</th>
-            <th class="px-4 py-[11px] text-left text-[11px] font-bold uppercase tracking-[.07em] text-muted border-b-2 border-line dark:border-dline">Действия</th>
+            <th class="px-4 py-[11px] text-left text-[11px] font-bold uppercase tracking-[.07em] text-muted border-b-2 border-line dark:border-dline">{{ t('common.id') }}</th>
+            <th class="px-4 py-[11px] text-left text-[11px] font-bold uppercase tracking-[.07em] text-muted border-b-2 border-line dark:border-dline">{{ t('listings.colListing') }}</th>
+            <th class="px-4 py-[11px] text-left text-[11px] font-bold uppercase tracking-[.07em] text-muted border-b-2 border-line dark:border-dline">{{ t('common.author') }}</th>
+            <th class="px-4 py-[11px] text-left text-[11px] font-bold uppercase tracking-[.07em] text-muted border-b-2 border-line dark:border-dline">{{ t('common.category') }}</th>
+            <th class="px-4 py-[11px] text-left text-[11px] font-bold uppercase tracking-[.07em] text-muted border-b-2 border-line dark:border-dline">{{ t('common.price') }}</th>
+            <th class="px-4 py-[11px] text-left text-[11px] font-bold uppercase tracking-[.07em] text-muted border-b-2 border-line dark:border-dline">{{ t('common.views') }}</th>
+            <th class="px-4 py-[11px] text-left text-[11px] font-bold uppercase tracking-[.07em] text-muted border-b-2 border-line dark:border-dline">{{ t('common.status') }}</th>
+            <th class="px-4 py-[11px] text-left text-[11px] font-bold uppercase tracking-[.07em] text-muted border-b-2 border-line dark:border-dline">{{ t('common.date') }}</th>
+            <th class="px-4 py-[11px] text-left text-[11px] font-bold uppercase tracking-[.07em] text-muted border-b-2 border-line dark:border-dline">{{ t('common.actions') }}</th>
           </tr>
         </thead>
         <tbody>
-          <tr v-for="listing in listings.data" :key="listing.id" class="hover:bg-surface/30 dark:hover:bg-white/3 transition">
+          <tr v-for="listing in listings.data" :key="listing.id" @dblclick="router.visit(route('listings.show', listing.id))" class="hover:bg-surface/30 dark:hover:bg-white/3 transition cursor-pointer">
+            <td class="px-4 py-[13px] text-[13px] border-b border-line dark:border-dline font-data text-muted">{{ listing.id }}</td>
             <td class="px-4 py-[13px] text-[13px] border-b border-line dark:border-dline">
               <div class="flex items-center gap-3">
                 <div v-if="listing.media?.[0]" class="h-10 w-10 rounded-[7px] overflow-hidden flex-shrink-0 bg-surface">
@@ -104,7 +118,7 @@ function formatPrice(p) {
               </div>
             </td>
             <td class="px-4 py-[13px] text-[13px] border-b border-line dark:border-dline text-muted">{{ listing.user?.name || listing.user?.phone || '—' }}</td>
-            <td class="px-4 py-[13px] text-[13px] border-b border-line dark:border-dline text-muted">{{ listing.category?.name_ru || '—' }}</td>
+            <td class="px-4 py-[13px] text-[13px] border-b border-line dark:border-dline text-muted">{{ categoryPath(listing.category) }}</td>
             <td class="px-4 py-[13px] text-[13px] border-b border-line dark:border-dline font-data font-bold text-ink dark:text-slate-200">{{ formatPrice(listing.price) }}</td>
             <td class="px-4 py-[13px] text-[13px] border-b border-line dark:border-dline font-data text-muted">{{ listing.views || 0 }}</td>
             <td class="px-4 py-[13px] text-[13px] border-b border-line dark:border-dline"><StatusBadge :status="listing.status" /></td>
@@ -114,17 +128,17 @@ function formatPrice(p) {
                 <Link :href="route('listings.show', listing.id)" class="flex h-[30px] w-[30px] items-center justify-center rounded-[7px] bg-blue-light text-blue transition hover:bg-blue hover:text-white">
                   <svg class="h-3.5 w-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-width="2" stroke-linecap="round" d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3" stroke-width="2"/></svg>
                 </Link>
-                <button v-if="listing.status === 'pending'" @click="approve(listing.id)" class="flex h-[30px] w-[30px] items-center justify-center rounded-[7px] bg-green/10 text-green transition hover:bg-green hover:text-white" title="Одобрить">
+                <button v-if="listing.status === 'pending'" @click="approve(listing.id)" class="flex h-[30px] w-[30px] items-center justify-center rounded-[7px] bg-green/10 text-green transition hover:bg-green hover:text-white" :title="t('actions.approve')">
                   <svg class="h-3.5 w-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><polyline stroke-width="2" stroke-linecap="round" points="20 6 9 17 4 12"/></svg>
                 </button>
-                <button v-if="listing.status !== 'rejected'" @click="openReject(listing)" class="flex h-[30px] w-[30px] items-center justify-center rounded-[7px] bg-red/10 text-red transition hover:bg-red hover:text-white" title="Отклонить">
+                <button v-if="listing.status !== 'rejected'" @click="openReject(listing)" class="flex h-[30px] w-[30px] items-center justify-center rounded-[7px] bg-red/10 text-red transition hover:bg-red hover:text-white" :title="t('actions.reject')">
                   <svg class="h-3.5 w-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18" stroke-width="2" stroke-linecap="round"/><line x1="6" y1="6" x2="18" y2="18" stroke-width="2" stroke-linecap="round"/></svg>
                 </button>
               </div>
             </td>
           </tr>
           <tr v-if="!listings.data?.length">
-            <td colspan="8" class="px-4 py-10 text-center text-[13px] text-muted">Объявления не найдены</td>
+            <td colspan="9" class="px-4 py-10 text-center text-[13px] text-muted">{{ t('listings.notFound') }}</td>
           </tr>
         </tbody>
       </table>
@@ -134,7 +148,7 @@ function formatPrice(p) {
     <!-- Reject modal -->
     <div v-if="rejectTarget" class="fixed inset-0 z-[600] flex items-center justify-center bg-black/40 backdrop-blur-sm" @click.self="rejectTarget = null">
       <div class="w-[440px] rounded-card bg-white p-6 shadow-[0_24px_48px_rgba(0,0,0,.18)] dark:bg-dcard">
-        <h3 class="mb-1 text-[17px] font-extrabold text-ink dark:text-slate-100">Причина отклонения</h3>
+        <h3 class="mb-1 text-[17px] font-extrabold text-ink dark:text-slate-100">{{ t('listings.rejectTitle') }}</h3>
         <p class="mb-4 text-[12px] text-muted">{{ rejectTarget?.title }}</p>
         <div class="space-y-1 mb-5">
           <label v-for="r in rejectionReasons" :key="r.id" class="flex items-center gap-3 cursor-pointer rounded-btn p-3 hover:bg-surface dark:hover:bg-white/5 transition">
@@ -143,8 +157,8 @@ function formatPrice(p) {
           </label>
         </div>
         <div class="flex gap-2.5">
-          <button @click="rejectTarget = null" class="flex-1 rounded-btn border-2 border-line py-[11px] text-[13px] font-bold text-muted hover:border-blue hover:text-blue transition dark:border-dline">Отмена</button>
-          <button @click="doReject" :disabled="!rejectReason" class="flex-1 rounded-btn bg-red py-[11px] text-[13px] font-bold text-white hover:opacity-90 transition disabled:opacity-40">Отклонить</button>
+          <button @click="rejectTarget = null" class="flex-1 rounded-btn border-2 border-line py-[11px] text-[13px] font-bold text-muted hover:border-blue hover:text-blue transition dark:border-dline">{{ t('actions.cancel') }}</button>
+          <button @click="doReject" :disabled="!rejectReason" class="flex-1 rounded-btn bg-red py-[11px] text-[13px] font-bold text-white hover:opacity-90 transition disabled:opacity-40">{{ t('actions.reject') }}</button>
         </div>
       </div>
     </div>

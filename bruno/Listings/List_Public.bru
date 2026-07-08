@@ -1,0 +1,55 @@
+meta {
+  name: Публичная выдача (поиск и фильтры)
+  type: http
+  seq: 1
+}
+
+get {
+  url: {{base_url}}/v1/listings?page=1&limit=20
+  body: none
+}
+
+params:query {
+  page: 1
+  limit: 20
+  ~search: велосипед
+  ~category_id: 1
+  ~region_id: 1
+  ~city_id: 1
+  ~type: goods
+  ~price_min: 100
+  ~price_max: 5000
+  ~sort: latest
+  ~lat: 37.95
+  ~lng: 58.38
+}
+
+headers {
+  Accept: application/json
+  Accept-Language: ru
+}
+
+docs {
+  Только approved-объявления. Токен не нужен.
+
+  Фильтры (все опциональные):
+  - search — по заголовку и описанию
+  - category_id — включает все подкатегории выбранной категории
+  - region_id, city_id — гео-фильтр
+  - type: goods|services
+  - price_min, price_max
+  - sort: latest (по умолчанию, поднятые выше) | price_asc | price_desc | nearest
+  - lat, lng — обязательны при sort=nearest; объявления без геолокации в эту выдачу не попадают
+
+  Пагинация: page, limit (1–50, по умолчанию 20). Ответ: { data, meta, links }.
+}
+
+tests {
+  test("status is 200", function() {
+    expect(res.getStatus()).to.equal(200);
+  });
+
+  test("has pagination meta", function() {
+    expect(res.getBody()).to.have.property('meta');
+  });
+}

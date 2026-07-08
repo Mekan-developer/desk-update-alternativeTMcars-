@@ -2,17 +2,26 @@
 
 namespace App\Services;
 
+use App\Actions\AttachListingPhotosAction;
+use App\Actions\CheckTariffLimitAction;
 use App\Models\Listing;
+use App\Models\ListingMedia;
+use App\Models\Setting;
 use App\Models\User;
+use App\Repositories\Interfaces\CategoryRepositoryInterface;
 use App\Repositories\Interfaces\ListingRepositoryInterface;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Storage;
 
 class ListingService
 {
     public function __construct(
         private readonly ListingRepositoryInterface $listingRepository,
         private readonly TariffService $tariffService,
+        private readonly CategoryRepositoryInterface $categoryRepository,
+        private readonly CheckTariffLimitAction $checkTariffLimitAction,
+        private readonly AttachListingPhotosAction $attachListingPhotosAction,
     ) {}
 
     public function list(array $filters): LengthAwarePaginator
@@ -51,7 +60,8 @@ class ListingService
             return true;
         }
 
-        $intervalHours = (int) config('settings.boost_interval_hours', 24);
+        // Интервал задаётся админом на странице «Настройки» (ключ в таблице settings).
+        $intervalHours = (int) Setting::get('boost_interval_hours', 24);
 
         return $listing->boosted_at->addHours($intervalHours)->isPast();
     }
@@ -67,5 +77,101 @@ class ListingService
     public function delete(Listing $listing): void
     {
         $this->listingRepository->delete($listing);
+    }
+
+    /**
+     * Публичная выдача для мобильного приложения.
+     * Фильтр по категории включает всё её поддерево (ТЗ 5.8).
+     */
+    public function searchForApi(array $filters, int $perPage = 20): LengthAwarePaginator
+    {
+        if (! empty($filters['category_id'])) {
+            $category = $this->categoryRepository->find((int) $filters['category_id']);
+            $filters['category_ids'] = [
+                $category->id,
+                ...$this->categoryRepository->descendants($category)->pluck('id')->all(),
+            ];
+        }
+
+        return $this->listingRepository->paginateForApi($filters, $perPage);
+    }
+
+    public function myListings(User $user, array $filters, int $perPage = 20): LengthAwarePaginator
+    {
+        return $this->listingRepository->paginateByUser($user->id, $filters, $perPage);
+    }
+
+    public function createFromApi(User $user, array $data): Listing
+    {
+        $this->checkTariffLimitAction->execute($user);
+
+        $photos = $data['photos'];
+        unset($data['photos']);
+
+        $listing = $this->listingRepository->create([
+            ...$data,
+            'user_id' => $user->id,
+            'phone'   => $data['phone'] ?? $user->phone,
+            'status'  => 'pending',
+        ]);
+
+        $this->attachListingPhotosAction->execute($listing, $photos);
+
+        return $this->listingRepository->find($listing->id);
+    }
+
+    /**
+     * Редактирование владельцем: любое изменение возвращает объявление
+     * на повторную модерацию (rejected → pending по ТЗ 5.6).
+     */
+    public function updateFromApi(Listing $listing, array $data): Listing
+    {
+        $newPhotos      = $data['photos'] ?? [];
+        $removeMediaIds = $data['remove_media_ids'] ?? [];
+        unset($data['photos'], $data['remove_media_ids']);
+
+        foreach ($listing->media as $media) {
+            if (in_array($media->id, $removeMediaIds)) {
+                $this->deleteMediaFiles($media);
+                $this->listingRepository->deleteMedia($media);
+            }
+        }
+
+        $this->listingRepository->update($listing, [
+            ...$data,
+            'status'              => 'pending',
+            'rejection_reason_id' => null,
+        ]);
+
+        if ($newPhotos !== []) {
+            $this->attachListingPhotosAction->execute($listing, $newPhotos);
+        }
+
+        return $this->listingRepository->find($listing->id);
+    }
+
+    public function deleteFromApi(Listing $listing): void
+    {
+        $this->listingRepository->delete($listing);
+        Storage::disk('public')->deleteDirectory("listings/{$listing->id}");
+    }
+
+    /** Счётчик просмотров: каждый заход, кроме владельца (ТЗ 5.4) */
+    public function registerView(Listing $listing, ?User $viewer): void
+    {
+        if ($viewer && $viewer->id === $listing->user_id) {
+            return;
+        }
+
+        $this->listingRepository->incrementViews($listing);
+    }
+
+    private function deleteMediaFiles(ListingMedia $media): void
+    {
+        Storage::disk('public')->delete(array_filter([
+            $media->path,
+            $media->medium_path,
+            $media->thumb_path,
+        ]));
     }
 }

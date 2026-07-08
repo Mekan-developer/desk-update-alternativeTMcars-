@@ -1,0 +1,51 @@
+meta {
+  name: Редактировать своё объявление
+  type: http
+  seq: 5
+}
+
+post {
+  url: {{base_url}}/v1/listings/1
+  body: multipartForm
+}
+
+headers {
+  Accept: application/json
+  Accept-Language: ru
+  Authorization: Bearer {{token}}
+}
+
+body:multipart-form {
+  title: Продам велосипед (обновлено)
+  ~description: Новое описание
+  ~price: 1200
+  ~category_id: 1
+  ~region_id: 1
+  ~city_id: 1
+  ~tags[]: велосипед
+  ~remove_media_ids[]: 1
+  ~photos[]: @file()
+}
+
+docs {
+  Multipart слать POST-ом (PHP не парсит multipart-PUT). Только владелец (403 иначе).
+
+  Все поля опциональные — частичное обновление. Фото:
+  - remove_media_ids[] — id существующих фото на удаление
+  - photos[] — новые фото
+  - после изменений должно остаться 1–8 фото
+
+  ВАЖНО: любое редактирование возвращает объявление в статус pending
+  (повторная модерация). Так же работает повторная отправка после
+  отклонения (rejected → исправил → pending).
+}
+
+tests {
+  test("status is 200", function() {
+    expect(res.getStatus()).to.equal(200);
+  });
+
+  test("listing went back to moderation", function() {
+    expect(res.getBody().data.status).to.equal('pending');
+  });
+}

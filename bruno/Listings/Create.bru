@@ -1,0 +1,64 @@
+meta {
+  name: Создать объявление
+  type: http
+  seq: 4
+}
+
+post {
+  url: {{base_url}}/v1/listings
+  body: multipartForm
+}
+
+headers {
+  Accept: application/json
+  Accept-Language: ru
+  Authorization: Bearer {{token}}
+}
+
+body:multipart-form {
+  title: Продам велосипед
+  description: Отличное состояние, почти не катались
+  type: goods
+  category_id: 1
+  region_id: 1
+  city_id: 1
+  price: 1500
+  tags[]: велосипед
+  tags[]: спорт
+  location[lat]: 37.95
+  location[lng]: 58.38
+  photos[]: @file()
+  ~phone: +99361123456
+}
+
+docs {
+  Multipart. Обязательные: title, description, type (goods|services),
+  category_id (конечная подкатегория — без активных детей), region_id,
+  city_id (из выбранного региона), photos[] (1–8 шт, jpg/png/webp до 5МБ).
+
+  Опциональные: price, phone (+993XXXXXXXX, иначе телефон автора),
+  tags[] (до 10 шт), location[lat]/location[lng] (если гео включено).
+
+  Ответ 201: объявление в статусе pending — уйдёт на модерацию и появится
+  в админке (раздел «Объявления»). Фото конвертируются в WebP фоновой
+  очередью `media` (original 1080px / medium 480×480 / thumb 120×120).
+
+  ВАЖНО: конвертация асинхронная (обычно 1–3 сек). В ответе на этот
+  запрос photos[].processing = true, и все три ссылки (original/medium/
+  thumb) временно указывают на ЗАГРУЖЕННЫЙ ОРИГИНАЛ (путь .../uploads/...,
+  не .webp). Дождитесь processing=false — сделайте повторный запрос
+  "Карточка объявления" (Get_Single) через пару секунд, тогда ссылки
+  будут вести на готовые .webp в /original|medium|thumb/.
+
+  403 — исчерпан лимит тарифа (занято = pending + approved).
+}
+
+tests {
+  test("status is 201", function() {
+    expect(res.getStatus()).to.equal(201);
+  });
+
+  test("listing is pending", function() {
+    expect(res.getBody().data.status).to.equal('pending');
+  });
+}

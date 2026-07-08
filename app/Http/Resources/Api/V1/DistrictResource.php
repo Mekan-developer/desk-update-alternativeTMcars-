@@ -5,16 +5,15 @@ namespace App\Http\Resources\Api\V1;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 
-class CityResource extends JsonResource
+class DistrictResource extends JsonResource
 {
     public function toArray(Request $request): array
     {
         return [
             'id' => $this->id,
-            'region_id' => $this->region_id,
+            'city_id' => $this->city_id,
             'name_ru' => $this->name_ru,
             'name_tk' => $this->name_tk,
-            'districts' => DistrictResource::collection($this->whenLoaded('districts')),
         ];
     }
 }
