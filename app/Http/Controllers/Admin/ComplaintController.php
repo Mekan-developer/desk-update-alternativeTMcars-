@@ -3,8 +3,8 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Admin\ResolveComplaintRequest;
 use App\Models\Complaint;
-use App\Models\ComplaintReason;
 use App\Repositories\Interfaces\ComplaintRepositoryInterface;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
@@ -18,24 +18,24 @@ class ComplaintController extends Controller
     public function index(Request $request)
     {
         return Inertia::render('Complaints/Index', [
-            'complaints' => $this->complaintRepository->paginate($request->only('status')),
-            'reasons'    => ComplaintReason::where('is_active', true)->get(),
-            'filters'    => $request->only('status'),
+            'complaints' => $this->complaintRepository->paginate($request->only('status', 'search', 'reason_id')),
+            'reasons'    => $this->complaintRepository->activeReasons(),
+            'filters'    => $request->only('status', 'search', 'reason_id'),
             'counts'     => [
                 'pending'  => $this->complaintRepository->countPending(),
-                'resolved' => Complaint::where('status', 'resolved')->count(),
+                'resolved' => $this->complaintRepository->countByStatus('resolved'),
             ],
         ]);
     }
 
-    public function resolve(Request $request, Complaint $complaint)
+    public function resolve(ResolveComplaintRequest $request, Complaint $complaint)
     {
-        $data = $request->validate([
-            'status' => 'required|in:resolved',
+        $this->complaintRepository->update($complaint, [
+            'status'          => 'resolved',
+            'resolved_by'     => $request->user()->id,
+            'resolution_note' => $request->validated('resolution_note'),
         ]);
 
-        $this->complaintRepository->update($complaint, $data);
-
-        return back()->with('toast', ['type' => 'success', 'message' => __('messages.updated')]);
+        return back()->with('toast', ['type' => 'success', 'message' => __('messages.complaint_resolved')]);
     }
 }

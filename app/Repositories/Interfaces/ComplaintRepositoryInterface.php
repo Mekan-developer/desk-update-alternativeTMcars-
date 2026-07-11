@@ -4,6 +4,7 @@ namespace App\Repositories\Interfaces;
 
 use App\Models\Complaint;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
+use Illuminate\Database\Eloquent\Collection;
 
 interface ComplaintRepositoryInterface
 {
@@ -12,4 +13,6 @@ interface ComplaintRepositoryInterface
     public function create(array $data): Complaint;
     public function update(Complaint $complaint, array $data): Complaint;
     public function countPending(): int;
+    public function countByStatus(string $status): int;
+    public function activeReasons(): Collection;
 }

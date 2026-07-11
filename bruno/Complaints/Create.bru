@@ -1,0 +1,40 @@
+meta {
+  name: Пожаловаться на объявление
+  type: http
+  seq: 2
+}
+
+post {
+  url: {{base_url}}/v1/complaints
+  body: json
+}
+
+headers {
+  Accept: application/json
+  Accept-Language: ru
+  Authorization: Bearer {{token}}
+}
+
+body:json {
+  {
+    "listing_id": 1,
+    "complaint_reason_id": 1,
+    "text": "Объявление выглядит как мошенничество"
+  }
+}
+
+docs {
+  Жалоба на объявление с причиной из справочника /complaint-reasons
+  (ТЗ 8.3). text опционален. Жалоба создаётся в статусе new и попадает
+  в админку (/complaints) на обработку администратором или менеджером.
+}
+
+tests {
+  test("status is 201", function() {
+    expect(res.getStatus()).to.equal(201);
+  });
+
+  test("complaint is new", function() {
+    expect(res.getBody().data.status).to.equal('new');
+  });
+}

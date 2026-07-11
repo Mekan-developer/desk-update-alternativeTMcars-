@@ -3,7 +3,6 @@
 namespace App\Services;
 
 use App\Models\Complaint;
-use App\Models\ComplaintReason;
 use App\Models\User;
 use App\Repositories\Interfaces\ComplaintRepositoryInterface;
 use Illuminate\Database\Eloquent\Collection;
@@ -16,7 +15,7 @@ class ComplaintService
 
     public function activeReasons(): Collection
     {
-        return ComplaintReason::where('is_active', true)->get();
+        return $this->complaintRepository->activeReasons();
     }
 
     public function createFromApi(User $user, array $data): Complaint
