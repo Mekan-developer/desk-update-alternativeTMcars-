@@ -31,6 +31,11 @@ class ListingResource extends JsonResource
             'views'      => $this->views,
             'is_boosted' => (bool) $this->is_boosted,
             'boosted_at' => $this->boosted_at,
+            // Присутствует только когда запрос сделан с Bearer-токеном (флаг считает репозиторий)
+            'is_favorite' => $this->when(
+                array_key_exists('is_favorite', $this->getAttributes()),
+                fn () => (bool) $this->getAttributes()['is_favorite'],
+            ),
             'category'   => $this->whenLoaded('category', fn () => [
                 'id'        => $this->category->id,
                 'parent_id' => $this->category->parent_id,

@@ -1,0 +1,26 @@
+meta {
+  name: Удалить из избранного
+  type: http
+  seq: 3
+}
+
+delete {
+  url: {{base_url}}/v1/favorites/1
+}
+
+headers {
+  Accept: application/json
+  Accept-Language: ru
+  Authorization: Bearer {{token}}
+}
+
+docs {
+  Убирает объявление из избранного текущего пользователя.
+  В URL — id объявления (не id записи избранного). Идемпотентно.
+}
+
+tests {
+  test("status is 200", function() {
+    expect(res.getStatus()).to.equal(200);
+  });
+}

@@ -1,0 +1,32 @@
+meta {
+  name: Список избранного
+  type: http
+  seq: 1
+}
+
+get {
+  url: {{base_url}}/v1/favorites
+}
+
+headers {
+  Accept: application/json
+  Accept-Language: ru
+  Authorization: Bearer {{token}}
+}
+
+docs {
+  Избранные объявления текущего пользователя (хранится в профиле, ТЗ 8.1).
+  Пагинация — как у /listings (meta.current_page/last_page/per_page/total).
+  Каждый элемент содержит вложенный объект listing.
+}
+
+tests {
+  test("status is 200", function() {
+    expect(res.getStatus()).to.equal(200);
+  });
+
+  test("has data and meta", function() {
+    expect(res.getBody().data).to.be.an('array');
+    expect(res.getBody().meta).to.have.property('total');
+  });
+}

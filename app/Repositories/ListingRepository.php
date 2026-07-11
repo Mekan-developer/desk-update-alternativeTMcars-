@@ -5,6 +5,7 @@ namespace App\Repositories;
 use App\Models\Listing;
 use App\Models\ListingMedia;
 use App\Repositories\Interfaces\ListingRepositoryInterface;
+use Carbon\CarbonInterface;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Database\Eloquent\Builder;
 
@@ -42,9 +43,19 @@ class ListingRepository implements ListingRepositoryInterface
         $listing->delete();
     }
 
+    public function countAll(): int
+    {
+        return Listing::count();
+    }
+
     public function countByStatus(string $status): int
     {
         return Listing::where('status', $status)->count();
+    }
+
+    public function countCreatedBetween(CarbonInterface $from, CarbonInterface $to): int
+    {
+        return Listing::whereBetween('created_at', [$from, $to])->count();
     }
 
     public function countActiveByUser(int $userId): int
@@ -54,10 +65,13 @@ class ListingRepository implements ListingRepositoryInterface
             ->count();
     }
 
-    public function paginateForApi(array $filters, int $perPage = 20): LengthAwarePaginator
+    public function paginateForApi(array $filters, int $perPage = 20, ?int $viewerId = null): LengthAwarePaginator
     {
         $query = Listing::with('user', 'category.parent.parent', 'region', 'city', 'media')
             ->where('status', 'approved')
+            ->when($viewerId, fn ($q, $id) => $q->withExists([
+                'favorites as is_favorite' => fn ($f) => $f->where('user_id', $id),
+            ]))
             ->when($filters['category_ids'] ?? null, fn ($q, $ids) => $q->whereIn('category_id', $ids))
             ->when($filters['region_id'] ?? null, fn ($q, $id) => $q->where('region_id', $id))
             ->when($filters['city_id'] ?? null, fn ($q, $id) => $q->where('city_id', $id))
@@ -99,6 +113,17 @@ class ListingRepository implements ListingRepositoryInterface
     public function countBoostedByUser(int $userId): int
     {
         return Listing::where('user_id', $userId)->where('is_boosted', true)->count();
+    }
+
+    public function loadFavoriteFlag(Listing $listing, ?int $viewerId): void
+    {
+        if ($viewerId === null) {
+            return;
+        }
+
+        $listing->loadExists([
+            'favorites as is_favorite' => fn ($f) => $f->where('user_id', $viewerId),
+        ]);
     }
 
     public function incrementViews(Listing $listing): void

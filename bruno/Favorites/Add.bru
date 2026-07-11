@@ -1,0 +1,33 @@
+meta {
+  name: Добавить в избранное
+  type: http
+  seq: 2
+}
+
+post {
+  url: {{base_url}}/v1/favorites
+  body: json
+}
+
+headers {
+  Accept: application/json
+  Accept-Language: ru
+  Authorization: Bearer {{token}}
+}
+
+body:json {
+  {
+    "listing_id": 1
+  }
+}
+
+docs {
+  Добавляет объявление в избранное. Идемпотентно: повторный вызов
+  с тем же listing_id не создаёт дубликата (unique user_id+listing_id).
+}
+
+tests {
+  test("status is 201", function() {
+    expect(res.getStatus()).to.equal(201);
+  });
+}

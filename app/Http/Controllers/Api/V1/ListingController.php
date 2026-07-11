@@ -34,6 +34,7 @@ class ListingController extends Controller
         $listings = $this->listingService->searchForApi(
             $request->validated(),
             (int) ($request->validated('limit') ?? 20),
+            $request->user('sanctum'),
         );
 
         return $this->paginated($listings);
@@ -68,6 +69,7 @@ class ListingController extends Controller
         abort_unless($listing->status === 'approved' || $viewer?->id === $listing->user_id, 404);
 
         $this->listingService->registerView($listing, $viewer);
+        $this->listingService->loadFavoriteFlag($listing, $viewer);
 
         return response()->json([
             'data'    => new ListingResource($listing->load('user', 'category', 'region', 'city', 'media', 'rejectionReason')),

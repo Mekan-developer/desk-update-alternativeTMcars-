@@ -4,6 +4,7 @@ namespace App\Repositories\Interfaces;
 
 use App\Models\Listing;
 use App\Models\ListingMedia;
+use Carbon\CarbonInterface;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Database\Eloquent\Collection;
 
@@ -14,11 +15,16 @@ interface ListingRepositoryInterface
     public function create(array $data): Listing;
     public function update(Listing $listing, array $data): Listing;
     public function delete(Listing $listing): void;
+    public function countAll(): int;
     public function countByStatus(string $status): int;
+    public function countCreatedBetween(CarbonInterface $from, CarbonInterface $to): int;
     public function countActiveByUser(int $userId): int;
 
     /** Публичная выдача для мобильного приложения: только approved + фильтры/сортировки */
-    public function paginateForApi(array $filters, int $perPage = 20): LengthAwarePaginator;
+    public function paginateForApi(array $filters, int $perPage = 20, ?int $viewerId = null): LengthAwarePaginator;
+
+    /** Проставляет атрибут is_favorite (в избранном ли у зрителя) на модель */
+    public function loadFavoriteFlag(Listing $listing, ?int $viewerId): void;
 
     /** Объявления пользователя (любой статус) для экрана «Мои объявления» */
     public function paginateByUser(int $userId, array $filters, int $perPage = 20): LengthAwarePaginator;

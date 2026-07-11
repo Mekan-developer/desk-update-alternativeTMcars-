@@ -83,7 +83,7 @@ class ListingService
      * Публичная выдача для мобильного приложения.
      * Фильтр по категории включает всё её поддерево (ТЗ 5.8).
      */
-    public function searchForApi(array $filters, int $perPage = 20): LengthAwarePaginator
+    public function searchForApi(array $filters, int $perPage = 20, ?User $viewer = null): LengthAwarePaginator
     {
         if (! empty($filters['category_id'])) {
             $category = $this->categoryRepository->find((int) $filters['category_id']);
@@ -93,7 +93,13 @@ class ListingService
             ];
         }
 
-        return $this->listingRepository->paginateForApi($filters, $perPage);
+        return $this->listingRepository->paginateForApi($filters, $perPage, $viewer?->id);
+    }
+
+    /** Проставляет is_favorite для авторизованного зрителя карточки */
+    public function loadFavoriteFlag(Listing $listing, ?User $viewer): void
+    {
+        $this->listingRepository->loadFavoriteFlag($listing, $viewer?->id);
     }
 
     public function myListings(User $user, array $filters, int $perPage = 20): LengthAwarePaginator
