@@ -1,0 +1,40 @@
+meta {
+  name: Загрузить ролик
+  type: http
+  seq: 2
+}
+
+post {
+  url: {{base_url}}/v1/videos
+  body: multipartForm
+}
+
+headers {
+  Accept: application/json
+  Accept-Language: ru
+  Authorization: Bearer {{token}}
+}
+
+body:multipart-form {
+  title: Сдаётся квартира в центре
+  tags[0]: Недвижимость
+  tags[1]: Аренда
+  video: @file()
+}
+
+docs {
+  Экран 10: multipart с видеофайлом (mp4/mov/webm, ≤100 МБ), названием и тегами.
+  Длительность проверяется на сервере (ffprobe): >60 сек — 422.
+  Квота тарифа (videos_limit, занято = pending+approved): при исчерпании 403.
+  Статус после загрузки — pending (на модерации), сжатие уходит в очередь media.
+}
+
+tests {
+  test("status is 201", function() {
+    expect(res.getStatus()).to.equal(201);
+  });
+
+  test("video is pending", function() {
+    expect(res.getBody().data.status).to.equal("pending");
+  });
+}

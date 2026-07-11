@@ -1,0 +1,28 @@
+meta {
+  name: Удалить свой ролик
+  type: http
+  seq: 7
+}
+
+delete {
+  url: {{base_url}}/v1/videos/1
+  body: none
+}
+
+headers {
+  Accept: application/json
+  Accept-Language: ru
+  Authorization: Bearer {{token}}
+}
+
+docs {
+  Удалять можно только свой ролик (policy, иначе 403).
+  Вместе с записью удаляются файлы (оригинал + сжатая версия + превью)
+  и лайки (FK cascade). Освобождает квоту тарифа.
+}
+
+tests {
+  test("status is 200", function() {
+    expect(res.getStatus()).to.equal(200);
+  });
+}

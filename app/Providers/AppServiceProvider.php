@@ -36,6 +36,8 @@ use App\Repositories\UserRepository;
 use App\Repositories\VideoRepository;
 use App\Services\Sms\LogSmsService;
 use App\Services\Sms\SmsSenderInterface;
+use App\Services\Video\FfprobeVideoProbe;
+use App\Services\Video\VideoProbeInterface;
 use Illuminate\Support\Facades\Vite;
 use Illuminate\Support\ServiceProvider;
 
@@ -61,6 +63,9 @@ class AppServiceProvider extends ServiceProvider
 
         // Dev: OTP пишется в laravel.log; прод — заменить на LocalModemSmsService
         $this->app->bind(SmsSenderInterface::class, LogSmsService::class);
+
+        // Длительность роликов при загрузке (в тестах подменяется фейком)
+        $this->app->bind(VideoProbeInterface::class, FfprobeVideoProbe::class);
     }
 
     public function boot(): void

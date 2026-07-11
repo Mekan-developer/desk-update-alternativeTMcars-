@@ -1,0 +1,32 @@
+meta {
+  name: Лента роликов (публичная)
+  type: http
+  seq: 1
+}
+
+get {
+  url: {{base_url}}/v1/videos?limit=20
+  body: none
+}
+
+headers {
+  Accept: application/json
+  Accept-Language: ru
+}
+
+docs {
+  Вертикальная лента (ТЗ §7, экран 9): только approved-ролики,
+  сортировка от новых к старым. Фильтры: search (по названию), tag.
+  С Bearer-токеном у каждого ролика появляется is_liked.
+  Пока processing=true — video указывает на несжатый оригинал, preview=null.
+}
+
+tests {
+  test("status is 200", function() {
+    expect(res.getStatus()).to.equal(200);
+  });
+
+  test("only approved videos", function() {
+    res.getBody().data.forEach(v => expect(v.status).to.equal("approved"));
+  });
+}

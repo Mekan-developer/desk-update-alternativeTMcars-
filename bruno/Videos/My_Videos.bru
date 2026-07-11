@@ -1,0 +1,28 @@
+meta {
+  name: Мои ролики
+  type: http
+  seq: 3
+}
+
+get {
+  url: {{base_url}}/v1/videos/my
+  body: none
+}
+
+headers {
+  Accept: application/json
+  Accept-Language: ru
+  Authorization: Bearer {{token}}
+}
+
+docs {
+  Ролики текущего пользователя во всех статусах модерации.
+  Фильтр: ?status=pending|approved|rejected.
+  У rejected-роликов присутствует rejection_reason (справочник, tk+ru).
+}
+
+tests {
+  test("status is 200", function() {
+    expect(res.getStatus()).to.equal(200);
+  });
+}

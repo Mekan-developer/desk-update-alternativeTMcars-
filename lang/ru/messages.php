@@ -24,6 +24,12 @@ return [
 
     'video_approved' => 'Ролик одобрен',
     'video_rejected' => 'Ролик отклонён',
+    'video_uploaded' => 'Ролик отправлен на модерацию',
+    'video_deleted'  => 'Ролик удалён',
+    'video_liked'    => 'Лайк поставлен',
+    'video_unliked'  => 'Лайк снят',
+    'video_too_long' => 'Длительность ролика не должна превышать 1 минуту',
+    'video_unreadable' => 'Не удалось прочитать видеофайл',
 
     'message_sent'        => 'Сообщение отправлено',
     'chat_marked_read'    => 'Отмечено как прочитанное',

@@ -137,6 +137,16 @@ const ICONS = {
     close: [
         { isPath: true, d: 'M6 6l12 12M18 6L6 18' },
     ],
+    heart: [
+        { isPath: true, d: 'M12 20.5S3.5 15.4 3.5 9.6A4.6 4.6 0 0 1 8.1 5c1.6 0 3.1.8 3.9 2.1A4.66 4.66 0 0 1 15.9 5a4.6 4.6 0 0 1 4.6 4.6c0 5.8-8.5 10.9-8.5 10.9z' },
+    ],
+    clock: [
+        { isCircle: true, cx: 12, cy: 12, r: 9 },
+        { isPath: true, d: 'M12 7v5l3.5 2' },
+    ],
+    play: [
+        { isFilledPath: true, d: 'M8 5.5l11 6.5-11 6.5z' },
+    ],
 }
 
 const shapes = computed(() => ICONS[props.kind] || ICONS.grid)

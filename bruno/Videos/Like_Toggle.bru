@@ -1,0 +1,33 @@
+meta {
+  name: Лайк (toggle)
+  type: http
+  seq: 5
+}
+
+post {
+  url: {{base_url}}/v1/videos/1/like
+  body: none
+}
+
+headers {
+  Accept: application/json
+  Accept-Language: ru
+  Authorization: Bearer {{token}}
+}
+
+docs {
+  ТЗ §7.3: один лайк на пользователя на ролик (unique).
+  Повторный вызов снимает лайк. Ответ: { is_liked, likes_count }.
+  Лайкать можно только approved-ролики (иначе 404).
+}
+
+tests {
+  test("status is 200", function() {
+    expect(res.getStatus()).to.equal(200);
+  });
+
+  test("returns like state", function() {
+    expect(res.getBody().data).to.have.property("is_liked");
+    expect(res.getBody().data).to.have.property("likes_count");
+  });
+}

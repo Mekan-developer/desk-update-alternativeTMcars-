@@ -13,6 +13,7 @@ use App\Http\Controllers\Api\V1\ProfileController;
 use App\Http\Controllers\Api\V1\RegionController;
 use App\Http\Controllers\Api\V1\ReviewController;
 use App\Http\Controllers\Api\V1\TariffController;
+use App\Http\Controllers\Api\V1\VideoController;
 use Illuminate\Support\Facades\Route;
 
 Route::prefix('v1')->middleware(\App\Http\Middleware\SetApiLocale::class)->group(function () {
@@ -86,6 +87,19 @@ Route::prefix('v1')->middleware(\App\Http\Middleware\SetApiLocale::class)->group
         Route::delete('/favorites/{listing}', [FavoriteController::class, 'destroy']);
     });
 
-    // TODO: Добавить остальные resources
-    // - Videos (ролики)
+    // Ролики (ТЗ §7): публичная лента отдаёт только approved
+    Route::get('/videos', [VideoController::class, 'index']);
+
+    Route::middleware('auth:sanctum')->group(function () {
+        // /videos/my объявлен ДО /videos/{video}, иначе «my» уйдёт в model binding
+        Route::get('/videos/my', [VideoController::class, 'my']);
+        // Загрузка ролика — заблокированному пользователю недоступна (ТЗ 13.3)
+        Route::post('/videos', [VideoController::class, 'store'])->middleware('not_blocked');
+        Route::post('/videos/{video}/like', [VideoController::class, 'like'])->middleware('throttle:60,1');
+        Route::delete('/videos/{video}', [VideoController::class, 'destroy'])->can('delete', 'video');
+    });
+
+    Route::get('/videos/{video}', [VideoController::class, 'show']);
+    // Просмотр из ленты доступен и гостю (лента публичная)
+    Route::post('/videos/{video}/view', [VideoController::class, 'view'])->middleware('throttle:60,1');
 });

@@ -1,0 +1,27 @@
+meta {
+  name: Просмотр (инкремент счётчика)
+  type: http
+  seq: 6
+}
+
+post {
+  url: {{base_url}}/v1/videos/1/view
+  body: none
+}
+
+headers {
+  Accept: application/json
+  Accept-Language: ru
+}
+
+docs {
+  Вызывается лентой при показе ролика. Доступен и гостю (лента публичная).
+  Атомарный инкремент views; просмотры автора не считаются
+  (передавайте Bearer-токен, чтобы это работало). Throttle 60/мин.
+}
+
+tests {
+  test("status is 200", function() {
+    expect(res.getStatus()).to.equal(200);
+  });
+}

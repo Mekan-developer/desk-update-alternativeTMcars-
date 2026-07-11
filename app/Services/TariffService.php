@@ -30,10 +30,10 @@ class TariffService
             return ['listings' => 0, 'videos' => 0, 'boosts' => 0];
         }
 
-        // Занятая квота считается так же, как при публикации (CheckTariffLimitAction):
-        // pending + approved занимают место, поднятые — квоту поднятий.
+        // Занятая квота считается так же, как при публикации (CheckTariffLimitAction /
+        // CheckVideoLimitAction): pending + approved занимают место, поднятые — квоту поднятий.
         $usedListings = $this->listingRepository->countByUserAndStatuses($user->id, ['pending', 'approved']);
-        $usedVideos   = $this->videoRepository->countActiveByUser($user->id);
+        $usedVideos   = $this->videoRepository->countByUserAndStatuses($user->id, ['pending', 'approved']);
         $usedBoosts   = $this->listingRepository->countBoostedByUser($user->id);
 
         return [

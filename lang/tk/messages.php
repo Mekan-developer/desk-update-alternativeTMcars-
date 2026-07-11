@@ -24,6 +24,12 @@ return [
 
     'video_approved' => 'Wideo tassyklandy',
     'video_rejected' => 'Wideo ret edildi',
+    'video_uploaded' => 'Wideo barlaga iberildi',
+    'video_deleted'  => 'Wideo pozuldy',
+    'video_liked'    => 'Halanan',
+    'video_unliked'  => 'Halamak aýryldy',
+    'video_too_long' => 'Wideonyň dowamlylygy 1 minutdan geçmeli däl',
+    'video_unreadable' => 'Wideo faýly okap bolmady',
 
     'message_sent'        => 'Habar iberildi',
     'chat_marked_read'    => 'Okalan diýip bellenildi',

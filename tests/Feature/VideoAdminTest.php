@@ -1,0 +1,119 @@
+<?php
+
+use App\Models\RejectionReason;
+use App\Models\Tariff;
+use App\Models\User;
+use App\Models\Video;
+use Illuminate\Support\Facades\Storage;
+
+beforeEach(function () {
+    Storage::fake('public');
+
+    $this->tariff = Tariff::create([
+        'name_ru' => 'Бесплатный', 'name_tk' => 'Mugt', 'listings_limit' => 5, 'videos_limit' => 2,
+        'boost_limit' => 1, 'duration_days' => 30, 'is_free' => true, 'is_active' => true,
+    ]);
+
+    $this->owner = User::factory()->create();
+});
+
+function makeAdminVideo(array $overrides = []): Video
+{
+    return Video::create(array_merge([
+        'user_id'          => test()->owner->id,
+        'title'            => 'Ролик',
+        'path'             => 'videos/'.uniqid().'/original.mp4',
+        'duration_seconds' => 48,
+        'status'           => 'pending',
+    ], $overrides));
+}
+
+it('renders the videos index with counts and tariff usage per author', function () {
+    makeAdminVideo(['title' => 'Первый']);
+    makeAdminVideo(['status' => 'approved']);
+
+    $this->actingAs(User::factory()->admin()->create());
+
+    $this->get(route('videos.index'))
+        ->assertOk()
+        ->assertInertia(fn ($page) => $page
+            ->component('Videos/Index')
+            ->has('videos.data', 2)
+            // «Тариф · использовано/лимит» для колонки Автор (занято = pending+approved)
+            ->where('videos.data.0.tariff_usage.used', 2)
+            ->where('videos.data.0.tariff_usage.limit', 2)
+            ->where('counts.pending', 1)
+            ->where('counts.approved', 1)
+            ->has('rejectionReasons'));
+});
+
+it('filters the index by status on the server', function () {
+    makeAdminVideo(['title' => 'В очереди']);
+    makeAdminVideo(['status' => 'approved', 'title' => 'Готовый']);
+
+    $this->actingAs(User::factory()->manager()->create());
+
+    $this->get(route('videos.index', ['status' => 'pending']))
+        ->assertOk()
+        ->assertInertia(fn ($page) => $page
+            ->has('videos.data', 1)
+            ->where('videos.data.0.title', 'В очереди'));
+});
+
+it('lets a manager approve a pending video', function () {
+    $video = makeAdminVideo();
+
+    $this->actingAs(User::factory()->manager()->create());
+
+    $this->patch(route('videos.approve', $video))->assertRedirect();
+
+    expect($video->fresh()->status)->toBe('approved');
+});
+
+it('rejects a video with a reason from the dictionary', function () {
+    $video  = makeAdminVideo();
+    $reason = RejectionReason::create([
+        'name_ru' => 'Признаки мошенничества', 'name_tk' => 'Aldawçylyk alamatlary',
+        'type' => 'video', 'is_active' => true,
+    ]);
+
+    $this->actingAs(User::factory()->manager()->create());
+
+    $this->patch(route('videos.reject', $video), ['rejection_reason_id' => $reason->id])
+        ->assertRedirect();
+
+    $video->refresh();
+    expect($video->status)->toBe('rejected')
+        ->and($video->rejection_reason_id)->toBe($reason->id);
+});
+
+it('forbids a manager from deleting a video', function () {
+    $video = makeAdminVideo();
+
+    $this->actingAs(User::factory()->manager()->create());
+
+    $this->delete(route('videos.destroy', $video))->assertForbidden();
+    expect(Video::count())->toBe(1);
+});
+
+it('lets an admin delete a video and cleans up its files', function () {
+    $video = makeAdminVideo([
+        'path'           => 'videos/xyz/original.mp4',
+        'processed_path' => 'videos/xyz/processed.mp4',
+        'preview_path'   => 'videos/xyz/preview.jpg',
+        'status'         => 'rejected',
+    ]);
+
+    Storage::disk('public')->put('videos/xyz/original.mp4', 'x');
+    Storage::disk('public')->put('videos/xyz/processed.mp4', 'x');
+    Storage::disk('public')->put('videos/xyz/preview.jpg', 'x');
+
+    $this->actingAs(User::factory()->admin()->create());
+
+    $this->delete(route('videos.destroy', $video))->assertRedirect();
+
+    expect(Video::count())->toBe(0);
+    Storage::disk('public')->assertMissing('videos/xyz/original.mp4');
+    Storage::disk('public')->assertMissing('videos/xyz/processed.mp4');
+    Storage::disk('public')->assertMissing('videos/xyz/preview.jpg');
+});

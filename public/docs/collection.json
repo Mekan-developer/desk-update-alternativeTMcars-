@@ -10,7 +10,7 @@
     ],
     "info": {
         "name": "Desc API Documentation",
-        "_postman_id": "273c8909-c714-4645-8883-6068ace2f227",
+        "_postman_id": "22ded0e4-d906-45ff-afc9-7c67171726c6",
         "description": "",
         "schema": "https:\/\/schema.getpostman.com\/json\/collection\/v2.1.0\/collection.json"
     },
@@ -193,8 +193,8 @@
                                     "value": "*"
                                 }
                             ],
-                            "code": 200,
-                            "body": "{\"data\":{\"id\":5,\"phone\":\"+99361123456\",\"name\":null,\"gender\":null,\"birth_date\":null,\"avatar\":null,\"region\":null,\"city\":null,\"created_at\":\"2026-07-06T17:10:20+05:00\"},\"message\":\"Success\"}",
+                            "code": 401,
+                            "body": "{\"message\":\"\\u041d\\u0435\\u043e\\u0431\\u0445\\u043e\\u0434\\u0438\\u043c\\u0430 \\u0430\\u0432\\u0442\\u043e\\u0440\\u0438\\u0437\\u0430\\u0446\\u0438\\u044f\"}",
                             "name": ""
                         }
                     ]
@@ -238,8 +238,8 @@
                                     "value": "*"
                                 }
                             ],
-                            "code": 200,
-                            "body": "{\"data\":{\"tariff\":{\"id\":1,\"name_tk\":\"Mugt\",\"name_ru\":\"\\u0411\\u0435\\u0441\\u043f\\u043b\\u0430\\u0442\\u043d\\u044b\\u0439\",\"listings_limit\":5,\"videos_limit\":2,\"boost_limit\":3,\"duration_days\":30,\"is_free\":true},\"expires_at\":null,\"remaining\":{\"listings\":0,\"videos\":2,\"boosts\":3}},\"message\":\"Success\"}",
+                            "code": 401,
+                            "body": "{\"message\":\"\\u041d\\u0435\\u043e\\u0431\\u0445\\u043e\\u0434\\u0438\\u043c\\u0430 \\u0430\\u0432\\u0442\\u043e\\u0440\\u0438\\u0437\\u0430\\u0446\\u0438\\u044f\"}",
                             "name": ""
                         }
                     ]
@@ -266,7 +266,7 @@
                         ],
                         "body": {
                             "mode": "raw",
-                            "raw": "{\"name\":\"b\",\"gender\":\"female\",\"birth_date\":\"2022-08-02\",\"fcm_token\":\"n\"}"
+                            "raw": "{\"name\":\"b\",\"gender\":\"male\",\"birth_date\":\"2022-08-04\",\"fcm_token\":\"n\"}"
                         },
                         "description": "PUT \/api\/v1\/profile"
                     },
@@ -708,7 +708,7 @@
                         ],
                         "body": {
                             "mode": "raw",
-                            "raw": "{\"status\":\"pending\",\"limit\":2,\"page\":22}"
+                            "raw": "{\"status\":\"approved\",\"limit\":2,\"page\":22}"
                         },
                         "description": "GET \/api\/v1\/listings\/my?status=pending|approved|rejected"
                     },
@@ -728,8 +728,8 @@
                                     "value": "*"
                                 }
                             ],
-                            "code": 200,
-                            "body": "{\"data\":[],\"meta\":{\"current_page\":22,\"last_page\":1,\"per_page\":2,\"total\":2},\"links\":{\"first\":\"http:\\\/\\\/192.168.31.64:8000\\\/api\\\/v1\\\/listings\\\/my?page=1\",\"last\":\"http:\\\/\\\/192.168.31.64:8000\\\/api\\\/v1\\\/listings\\\/my?page=1\",\"prev\":\"http:\\\/\\\/192.168.31.64:8000\\\/api\\\/v1\\\/listings\\\/my?page=21\",\"next\":null}}",
+                            "code": 401,
+                            "body": "{\"message\":\"\\u041d\\u0435\\u043e\\u0431\\u0445\\u043e\\u0434\\u0438\\u043c\\u0430 \\u0430\\u0432\\u0442\\u043e\\u0440\\u0438\\u0437\\u0430\\u0446\\u0438\\u044f\"}",
                             "name": ""
                         }
                     ]
@@ -771,7 +771,7 @@
                                 },
                                 {
                                     "key": "type",
-                                    "value": "goods",
+                                    "value": "services",
                                     "type": "text",
                                     "description": ""
                                 },
@@ -1051,8 +1051,8 @@
                                     "value": "*"
                                 }
                             ],
-                            "code": 200,
-                            "body": "{\"data\":{\"id\":5,\"title\":\"\\u041f\\u0440\\u043e\\u0434\\u0430\\u043c \\u0432\\u0435\\u043b\\u043e\\u0441\\u0438\\u043f\\u0435\\u0434\",\"description\":\"\\u041e\\u0442\\u043b\\u0438\\u0447\\u043d\\u043e\\u0435 \\u0441\\u043e\\u0441\\u0442\\u043e\\u044f\\u043d\\u0438\\u0435, \\u043f\\u043e\\u0447\\u0442\\u0438 \\u043d\\u0435 \\u043a\\u0430\\u0442\\u0430\\u043b\\u0438\\u0441\\u044c\",\"type\":\"goods\",\"price\":1500,\"phone\":\"+99361123456\",\"tags\":[\"\\u0432\\u0435\\u043b\\u043e\\u0441\\u0438\\u043f\\u0435\\u0434\",\"\\u0441\\u043f\\u043e\\u0440\\u0442\"],\"location\":{\"lat\":\"37.95\",\"lng\":\"58.38\"},\"status\":\"rejected\",\"rejection_reason\":{\"id\":4,\"name_tk\":\"Surat \\u00fdeterlik d\\u00e4l\",\"name_ru\":\"\\u041d\\u0435\\u0434\\u043e\\u0441\\u0442\\u0430\\u0442\\u043e\\u0447\\u043d\\u043e \\u0444\\u043e\\u0442\\u043e\"},\"views\":0,\"is_boosted\":false,\"boosted_at\":null,\"category\":{\"id\":17,\"parent_id\":2,\"name_tk\":\"566yu5tu7\",\"name_ru\":\"test\",\"path\":[{\"id\":1,\"name_tk\":\"Optom\",\"name_ru\":\"\\u041e\\u043f\\u0442\\u043e\\u043c\"},{\"id\":2,\"name_tk\":\"\\u041f\\u0440\\u043e\\u0434\\u0443\\u043a\\u0442\\u044b \\u043f\\u0438\\u0442\\u0430\\u043d\\u0438\\u044f\",\"name_ru\":\"\\u041f\\u0440\\u043e\\u0434\\u0443\\u043a\\u0442\\u044b \\u043f\\u0438\\u0442\\u0430\\u043d\\u0438\\u044f\"},{\"id\":17,\"name_tk\":\"566yu5tu7\",\"name_ru\":\"test\"}]},\"region\":{\"id\":1,\"name_tk\":\"A\\u015fgabat\",\"name_ru\":\"\\u0410\\u0448\\u0445\\u0430\\u0431\\u0430\\u0434\"},\"city\":{\"id\":1,\"name_tk\":\"\\u0410\\u0448\\u0445\\u0430\\u0431\\u0430\\u0434\",\"name_ru\":\"\\u0410\\u0448\\u0445\\u0430\\u0431\\u0430\\u0434\"},\"user\":{\"id\":5,\"name\":null,\"avatar\":null},\"photos\":[{\"id\":6,\"order\":1,\"processing\":false,\"original\":\"http:\\\/\\\/192.168.31.64:8000\\\/storage\\\/listings\\\/5\\\/photos\\\/original\\\/r72i5yrqJv59vZF0OSHTByTth2BchS7pqHGkbGh1.webp\",\"medium\":\"http:\\\/\\\/192.168.31.64:8000\\\/storage\\\/listings\\\/5\\\/photos\\\/medium\\\/r72i5yrqJv59vZF0OSHTByTth2BchS7pqHGkbGh1.webp\",\"thumb\":\"http:\\\/\\\/192.168.31.64:8000\\\/storage\\\/listings\\\/5\\\/photos\\\/thumb\\\/r72i5yrqJv59vZF0OSHTByTth2BchS7pqHGkbGh1.webp\"},{\"id\":7,\"order\":2,\"processing\":false,\"original\":\"http:\\\/\\\/192.168.31.64:8000\\\/storage\\\/listings\\\/5\\\/photos\\\/original\\\/OewpzvLvIEc77ILgN8oBmUSWMKak80J4AXXg8z0g.webp\",\"medium\":\"http:\\\/\\\/192.168.31.64:8000\\\/storage\\\/listings\\\/5\\\/photos\\\/medium\\\/OewpzvLvIEc77ILgN8oBmUSWMKak80J4AXXg8z0g.webp\",\"thumb\":\"http:\\\/\\\/192.168.31.64:8000\\\/storage\\\/listings\\\/5\\\/photos\\\/thumb\\\/OewpzvLvIEc77ILgN8oBmUSWMKak80J4AXXg8z0g.webp\"}],\"created_at\":\"2026-07-08T11:18:23+05:00\"},\"message\":\"Success\"}",
+                            "code": 404,
+                            "body": "{\"message\":\"\\u041d\\u0435 \\u043d\\u0430\\u0439\\u0434\\u0435\\u043d\\u043e\"}",
                             "name": ""
                         }
                     ]
@@ -1096,8 +1096,8 @@
                                     "value": "*"
                                 }
                             ],
-                            "code": 200,
-                            "body": "{\"data\":[{\"id\":4,\"sender\":\"user\",\"text\":\"\\u0417\\u0434\\u0440\\u0430\\u0432\\u0441\\u0442\\u0432\\u0443\\u0439\\u0442\\u0435, \\u0443 \\u043c\\u0435\\u043d\\u044f \\u0432\\u043e\\u043f\\u0440\\u043e\\u0441 \\u043f\\u043e \\u043e\\u0431\\u044a\\u044f\\u0432\\u043b\\u0435\\u043d\\u0438\\u044e\",\"is_read\":true,\"created_at\":\"2026-07-08T11:04:25.000000Z\"},{\"id\":11,\"sender\":\"user\",\"text\":\"\\u0417\\u0434\\u0440\\u0430\\u0432\\u0441\\u0442\\u0432\\u0443\\u0439\\u0442\\u0435, \\u0443 \\u043c\\u0435\\u043d\\u044f \\u0432\\u043e\\u043f\\u0440\\u043e\\u0441 \\u043f\\u043e \\u043e\\u0431\\u044a\\u044f\\u0432\\u043b\\u0435\\u043d\\u0438\\u044e\",\"is_read\":true,\"created_at\":\"2026-07-08T11:35:54.000000Z\"}]}",
+                            "code": 401,
+                            "body": "{\"message\":\"\\u041d\\u0435\\u043e\\u0431\\u0445\\u043e\\u0434\\u0438\\u043c\\u0430 \\u0430\\u0432\\u0442\\u043e\\u0440\\u0438\\u0437\\u0430\\u0446\\u0438\\u044f\"}",
                             "name": ""
                         }
                     ]
@@ -1156,6 +1156,519 @@
                     "response": []
                 },
                 {
+                    "name": "\u0421\u043f\u0438\u0441\u043e\u043a \u0430\u043a\u0442\u0438\u0432\u043d\u044b\u0445 \u043f\u0440\u0438\u0447\u0438\u043d \u0436\u0430\u043b\u043e\u0431\u044b \u2014 \u0434\u043b\u044f \u0432\u044b\u0431\u043e\u0440\u0430 \u043f\u0440\u0438 \u043f\u043e\u0434\u0430\u0447\u0435 \u0436\u0430\u043b\u043e\u0431\u044b.",
+                    "request": {
+                        "url": {
+                            "host": "{{baseUrl}}",
+                            "path": "api\/v1\/complaint-reasons",
+                            "query": [],
+                            "raw": "{{baseUrl}}\/api\/v1\/complaint-reasons"
+                        },
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application\/json"
+                            },
+                            {
+                                "key": "Accept",
+                                "value": "application\/json"
+                            }
+                        ],
+                        "body": null,
+                        "description": "GET \/api\/v1\/complaint-reasons",
+                        "auth": {
+                            "type": "noauth"
+                        }
+                    },
+                    "response": [
+                        {
+                            "header": [
+                                {
+                                    "key": "cache-control",
+                                    "value": "no-cache, private"
+                                },
+                                {
+                                    "key": "content-type",
+                                    "value": "application\/json"
+                                },
+                                {
+                                    "key": "access-control-allow-origin",
+                                    "value": "*"
+                                }
+                            ],
+                            "code": 200,
+                            "body": "{\"data\":[{\"id\":1,\"name_ru\":\"\\u041c\\u043e\\u0448\\u0435\\u043d\\u043d\\u0438\\u0447\\u0435\\u0441\\u0442\\u0432\\u043e\",\"name_tk\":\"Galplyk\"},{\"id\":2,\"name_ru\":\"\\u0417\\u0430\\u043f\\u0440\\u0435\\u0449\\u0451\\u043d\\u043d\\u044b\\u0439 \\u043a\\u043e\\u043d\\u0442\\u0435\\u043d\\u0442\",\"name_tk\":\"Gadagan edilen mazmun\"},{\"id\":3,\"name_ru\":\"\\u041d\\u0435\\u0432\\u0435\\u0440\\u043d\\u0430\\u044f \\u0438\\u043d\\u0444\\u043e\\u0440\\u043c\\u0430\\u0446\\u0438\\u044f\",\"name_tk\":\"N\\u00e4dogry maglumat\"},{\"id\":4,\"name_ru\":\"\\u0421\\u043f\\u0430\\u043c\",\"name_tk\":\"Spam\"},{\"id\":5,\"name_ru\":\"\\u0414\\u0440\\u0443\\u0433\\u043e\\u0435\",\"name_tk\":\"Be\\u00fdleki\"}]}",
+                            "name": ""
+                        }
+                    ]
+                },
+                {
+                    "name": "\u041e\u0441\u0442\u0430\u0432\u0438\u0442\u044c \u043e\u0442\u0437\u044b\u0432 (\u043e\u0431 \u043e\u0431\u044a\u044f\u0432\u043b\u0435\u043d\u0438\u0438 \u0438\u043b\u0438 \u043e \u043f\u043e\u043b\u044c\u0437\u043e\u0432\u0430\u0442\u0435\u043b\u0435) \u2014 \u0443\u0445\u043e\u0434\u0438\u0442 \u043d\u0430 \u043c\u043e\u0434\u0435\u0440\u0430\u0446\u0438\u044e.",
+                    "request": {
+                        "url": {
+                            "host": "{{baseUrl}}",
+                            "path": "api\/v1\/reviews",
+                            "query": [],
+                            "raw": "{{baseUrl}}\/api\/v1\/reviews"
+                        },
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application\/json"
+                            },
+                            {
+                                "key": "Accept",
+                                "value": "application\/json"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\"text\":\"b\",\"rating\":2,\"listing_id\":16,\"target_user_id\":16}"
+                        },
+                        "description": "POST \/api\/v1\/reviews"
+                    },
+                    "response": []
+                },
+                {
+                    "name": "\u041f\u043e\u0436\u0430\u043b\u043e\u0432\u0430\u0442\u044c\u0441\u044f \u043d\u0430 \u043e\u0431\u044a\u044f\u0432\u043b\u0435\u043d\u0438\u0435 \u2014 \u0443\u0445\u043e\u0434\u0438\u0442 \u0432 \u0430\u0434\u043c\u0438\u043d\u043a\u0443 \u043d\u0430 \u043e\u0431\u0440\u0430\u0431\u043e\u0442\u043a\u0443.",
+                    "request": {
+                        "url": {
+                            "host": "{{baseUrl}}",
+                            "path": "api\/v1\/complaints",
+                            "query": [],
+                            "raw": "{{baseUrl}}\/api\/v1\/complaints"
+                        },
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application\/json"
+                            },
+                            {
+                                "key": "Accept",
+                                "value": "application\/json"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\"listing_id\":16,\"complaint_reason_id\":16,\"text\":\"n\"}"
+                        },
+                        "description": "POST \/api\/v1\/complaints"
+                    },
+                    "response": []
+                },
+                {
+                    "name": "\u0421\u043f\u0438\u0441\u043e\u043a \u0438\u0437\u0431\u0440\u0430\u043d\u043d\u043e\u0433\u043e \u0442\u0435\u043a\u0443\u0449\u0435\u0433\u043e \u043f\u043e\u043b\u044c\u0437\u043e\u0432\u0430\u0442\u0435\u043b\u044f (\u0445\u0440\u0430\u043d\u0438\u0442\u0441\u044f \u0432 \u043f\u0440\u043e\u0444\u0438\u043b\u0435).",
+                    "request": {
+                        "url": {
+                            "host": "{{baseUrl}}",
+                            "path": "api\/v1\/favorites",
+                            "query": [],
+                            "raw": "{{baseUrl}}\/api\/v1\/favorites"
+                        },
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application\/json"
+                            },
+                            {
+                                "key": "Accept",
+                                "value": "application\/json"
+                            }
+                        ],
+                        "body": null,
+                        "description": "GET \/api\/v1\/favorites"
+                    },
+                    "response": [
+                        {
+                            "header": [
+                                {
+                                    "key": "cache-control",
+                                    "value": "no-cache, private"
+                                },
+                                {
+                                    "key": "content-type",
+                                    "value": "application\/json"
+                                },
+                                {
+                                    "key": "access-control-allow-origin",
+                                    "value": "*"
+                                }
+                            ],
+                            "code": 401,
+                            "body": "{\"message\":\"\\u041d\\u0435\\u043e\\u0431\\u0445\\u043e\\u0434\\u0438\\u043c\\u0430 \\u0430\\u0432\\u0442\\u043e\\u0440\\u0438\\u0437\\u0430\\u0446\\u0438\\u044f\"}",
+                            "name": ""
+                        }
+                    ]
+                },
+                {
+                    "name": "\u0414\u043e\u0431\u0430\u0432\u0438\u0442\u044c \u043e\u0431\u044a\u044f\u0432\u043b\u0435\u043d\u0438\u0435 \u0432 \u0438\u0437\u0431\u0440\u0430\u043d\u043d\u043e\u0435 (\u0438\u0434\u0435\u043c\u043f\u043e\u0442\u0435\u043d\u0442\u043d\u043e).",
+                    "request": {
+                        "url": {
+                            "host": "{{baseUrl}}",
+                            "path": "api\/v1\/favorites",
+                            "query": [],
+                            "raw": "{{baseUrl}}\/api\/v1\/favorites"
+                        },
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application\/json"
+                            },
+                            {
+                                "key": "Accept",
+                                "value": "application\/json"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\"listing_id\":16}"
+                        },
+                        "description": "POST \/api\/v1\/favorites"
+                    },
+                    "response": []
+                },
+                {
+                    "name": "\u0423\u0434\u0430\u043b\u0438\u0442\u044c \u043e\u0431\u044a\u044f\u0432\u043b\u0435\u043d\u0438\u0435 \u0438\u0437 \u0438\u0437\u0431\u0440\u0430\u043d\u043d\u043e\u0433\u043e (\u0438\u0434\u0435\u043c\u043f\u043e\u0442\u0435\u043d\u0442\u043d\u043e).",
+                    "request": {
+                        "url": {
+                            "host": "{{baseUrl}}",
+                            "path": "api\/v1\/favorites\/:listing",
+                            "query": [],
+                            "raw": "{{baseUrl}}\/api\/v1\/favorites\/:listing",
+                            "variable": [
+                                {
+                                    "id": "listing",
+                                    "key": "listing",
+                                    "value": "architecto",
+                                    "description": ""
+                                }
+                            ]
+                        },
+                        "method": "DELETE",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application\/json"
+                            },
+                            {
+                                "key": "Accept",
+                                "value": "application\/json"
+                            }
+                        ],
+                        "body": null,
+                        "description": "DELETE \/api\/v1\/favorites\/{listing}"
+                    },
+                    "response": []
+                },
+                {
+                    "name": "\u041f\u0443\u0431\u043b\u0438\u0447\u043d\u0430\u044f \u0432\u0435\u0440\u0442\u0438\u043a\u0430\u043b\u044c\u043d\u0430\u044f \u043b\u0435\u043d\u0442\u0430 \u043e\u0434\u043e\u0431\u0440\u0435\u043d\u043d\u044b\u0445 \u0440\u043e\u043b\u0438\u043a\u043e\u0432 (\u0422\u0417 \u00a77, \u044d\u043a\u0440\u0430\u043d 9).",
+                    "request": {
+                        "url": {
+                            "host": "{{baseUrl}}",
+                            "path": "api\/v1\/videos",
+                            "query": [],
+                            "raw": "{{baseUrl}}\/api\/v1\/videos"
+                        },
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application\/json"
+                            },
+                            {
+                                "key": "Accept",
+                                "value": "application\/json"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\"search\":\"b\",\"tag\":\"n\",\"limit\":7,\"page\":66}"
+                        },
+                        "description": "GET \/api\/v1\/videos\n\n\u0424\u0438\u043b\u044c\u0442\u0440\u044b: search (\u043f\u043e \u043d\u0430\u0437\u0432\u0430\u043d\u0438\u044e), tag, page, limit.\n\u0421 Bearer-\u0442\u043e\u043a\u0435\u043d\u043e\u043c \u0443 \u043a\u0430\u0436\u0434\u043e\u0433\u043e \u0440\u043e\u043b\u0438\u043a\u0430 \u043f\u043e\u044f\u0432\u043b\u044f\u0435\u0442\u0441\u044f is_liked.",
+                        "auth": {
+                            "type": "noauth"
+                        }
+                    },
+                    "response": [
+                        {
+                            "header": [
+                                {
+                                    "key": "cache-control",
+                                    "value": "no-cache, private"
+                                },
+                                {
+                                    "key": "content-type",
+                                    "value": "application\/json"
+                                },
+                                {
+                                    "key": "access-control-allow-origin",
+                                    "value": "*"
+                                }
+                            ],
+                            "code": 200,
+                            "body": "{\"data\":[],\"meta\":{\"current_page\":66,\"last_page\":1,\"per_page\":7,\"total\":0},\"links\":{\"first\":\"http:\\\/\\\/192.168.31.64:8000\\\/api\\\/v1\\\/videos?page=1\",\"last\":\"http:\\\/\\\/192.168.31.64:8000\\\/api\\\/v1\\\/videos?page=1\",\"prev\":\"http:\\\/\\\/192.168.31.64:8000\\\/api\\\/v1\\\/videos?page=65\",\"next\":null}}",
+                            "name": ""
+                        }
+                    ]
+                },
+                {
+                    "name": "\u0420\u043e\u043b\u0438\u043a\u0438 \u0442\u0435\u043a\u0443\u0449\u0435\u0433\u043e \u043f\u043e\u043b\u044c\u0437\u043e\u0432\u0430\u0442\u0435\u043b\u044f (\u0432\u0441\u0435 \u0441\u0442\u0430\u0442\u0443\u0441\u044b \u043c\u043e\u0434\u0435\u0440\u0430\u0446\u0438\u0438).",
+                    "request": {
+                        "url": {
+                            "host": "{{baseUrl}}",
+                            "path": "api\/v1\/videos\/my",
+                            "query": [],
+                            "raw": "{{baseUrl}}\/api\/v1\/videos\/my"
+                        },
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application\/json"
+                            },
+                            {
+                                "key": "Accept",
+                                "value": "application\/json"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\"status\":\"pending\",\"limit\":1,\"page\":22}"
+                        },
+                        "description": "GET \/api\/v1\/videos\/my?status=pending|approved|rejected"
+                    },
+                    "response": [
+                        {
+                            "header": [
+                                {
+                                    "key": "cache-control",
+                                    "value": "no-cache, private"
+                                },
+                                {
+                                    "key": "content-type",
+                                    "value": "application\/json"
+                                },
+                                {
+                                    "key": "access-control-allow-origin",
+                                    "value": "*"
+                                }
+                            ],
+                            "code": 401,
+                            "body": "{\"message\":\"\\u041d\\u0435\\u043e\\u0431\\u0445\\u043e\\u0434\\u0438\\u043c\\u0430 \\u0430\\u0432\\u0442\\u043e\\u0440\\u0438\\u0437\\u0430\\u0446\\u0438\\u044f\"}",
+                            "name": ""
+                        }
+                    ]
+                },
+                {
+                    "name": "\u0417\u0430\u0433\u0440\u0443\u0437\u043a\u0430 \u0440\u043e\u043b\u0438\u043a\u0430 (multipart, \u226460 \u0441\u0435\u043a, \u043a\u0432\u043e\u0442\u0430 \u0442\u0430\u0440\u0438\u0444\u0430). \u0421\u0442\u0430\u0442\u0443\u0441 \u2014 pending.",
+                    "request": {
+                        "url": {
+                            "host": "{{baseUrl}}",
+                            "path": "api\/v1\/videos",
+                            "query": [],
+                            "raw": "{{baseUrl}}\/api\/v1\/videos"
+                        },
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "multipart\/form-data"
+                            },
+                            {
+                                "key": "Accept",
+                                "value": "application\/json"
+                            }
+                        ],
+                        "body": {
+                            "mode": "formdata",
+                            "formdata": [
+                                {
+                                    "key": "title",
+                                    "value": "b",
+                                    "type": "text",
+                                    "description": "\u0414\u043b\u0438\u043d\u0430 value \u043d\u0435 \u0434\u043e\u043b\u0436\u043d\u0430 \u043f\u0440\u0435\u0432\u044b\u0448\u0430\u0442\u044c 255 \u0441\u0438\u043c\u0432\u043e\u043b\u043e\u0432."
+                                },
+                                {
+                                    "key": "tags[0]",
+                                    "value": "n",
+                                    "type": "text",
+                                    "description": ""
+                                },
+                                {
+                                    "key": "video",
+                                    "src": [],
+                                    "type": "file"
+                                }
+                            ]
+                        },
+                        "description": "POST \/api\/v1\/videos"
+                    },
+                    "response": []
+                },
+                {
+                    "name": "\u041b\u0430\u0439\u043a-\u043f\u0435\u0440\u0435\u043a\u043b\u044e\u0447\u0430\u0442\u0435\u043b\u044c: \u043e\u0434\u0438\u043d \u043b\u0430\u0439\u043a \u043d\u0430 \u043f\u043e\u043b\u044c\u0437\u043e\u0432\u0430\u0442\u0435\u043b\u044f \u043d\u0430 \u0440\u043e\u043b\u0438\u043a (\u0422\u0417 \u00a77.3).",
+                    "request": {
+                        "url": {
+                            "host": "{{baseUrl}}",
+                            "path": "api\/v1\/videos\/:video_id\/like",
+                            "query": [],
+                            "raw": "{{baseUrl}}\/api\/v1\/videos\/:video_id\/like",
+                            "variable": [
+                                {
+                                    "id": "video_id",
+                                    "key": "video_id",
+                                    "value": 16,
+                                    "description": "The ID of the video."
+                                }
+                            ]
+                        },
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application\/json"
+                            },
+                            {
+                                "key": "Accept",
+                                "value": "application\/json"
+                            }
+                        ],
+                        "body": null,
+                        "description": "POST \/api\/v1\/videos\/{id}\/like"
+                    },
+                    "response": []
+                },
+                {
+                    "name": "\u0423\u0434\u0430\u043b\u0435\u043d\u0438\u0435 \u0441\u0432\u043e\u0435\u0433\u043e \u0440\u043e\u043b\u0438\u043a\u0430 \u0432\u043c\u0435\u0441\u0442\u0435 \u0441 \u0444\u0430\u0439\u043b\u0430\u043c\u0438 \u2014 \u043e\u0441\u0432\u043e\u0431\u043e\u0436\u0434\u0430\u0435\u0442 \u043a\u0432\u043e\u0442\u0443 \u0442\u0430\u0440\u0438\u0444\u0430.",
+                    "request": {
+                        "url": {
+                            "host": "{{baseUrl}}",
+                            "path": "api\/v1\/videos\/:video_id",
+                            "query": [],
+                            "raw": "{{baseUrl}}\/api\/v1\/videos\/:video_id",
+                            "variable": [
+                                {
+                                    "id": "video_id",
+                                    "key": "video_id",
+                                    "value": 16,
+                                    "description": "The ID of the video."
+                                }
+                            ]
+                        },
+                        "method": "DELETE",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application\/json"
+                            },
+                            {
+                                "key": "Accept",
+                                "value": "application\/json"
+                            }
+                        ],
+                        "body": null,
+                        "description": "DELETE \/api\/v1\/videos\/{id}"
+                    },
+                    "response": []
+                },
+                {
+                    "name": "\u041a\u0430\u0440\u0442\u043e\u0447\u043a\u0430 \u0440\u043e\u043b\u0438\u043a\u0430. \u0427\u0443\u0436\u0438\u0435 \u043d\u0435\u043f\u0440\u043e\u043c\u043e\u0434\u0435\u0440\u0438\u0440\u043e\u0432\u0430\u043d\u043d\u044b\u0435 \u0440\u043e\u043b\u0438\u043a\u0438 \u043d\u0435\u0434\u043e\u0441\u0442\u0443\u043f\u043d\u044b.",
+                    "request": {
+                        "url": {
+                            "host": "{{baseUrl}}",
+                            "path": "api\/v1\/videos\/:video_id",
+                            "query": [],
+                            "raw": "{{baseUrl}}\/api\/v1\/videos\/:video_id",
+                            "variable": [
+                                {
+                                    "id": "video_id",
+                                    "key": "video_id",
+                                    "value": 16,
+                                    "description": "The ID of the video."
+                                }
+                            ]
+                        },
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application\/json"
+                            },
+                            {
+                                "key": "Accept",
+                                "value": "application\/json"
+                            }
+                        ],
+                        "body": null,
+                        "description": "GET \/api\/v1\/videos\/{id}",
+                        "auth": {
+                            "type": "noauth"
+                        }
+                    },
+                    "response": [
+                        {
+                            "header": [
+                                {
+                                    "key": "cache-control",
+                                    "value": "no-cache, private"
+                                },
+                                {
+                                    "key": "content-type",
+                                    "value": "application\/json"
+                                },
+                                {
+                                    "key": "access-control-allow-origin",
+                                    "value": "*"
+                                }
+                            ],
+                            "code": 404,
+                            "body": "{\"message\":\"\\u041d\\u0435 \\u043d\\u0430\\u0439\\u0434\\u0435\\u043d\\u043e\"}",
+                            "name": ""
+                        }
+                    ]
+                },
+                {
+                    "name": "\u041f\u0440\u043e\u0441\u043c\u043e\u0442\u0440 \u0438\u0437 \u043b\u0435\u043d\u0442\u044b: \u0430\u0442\u043e\u043c\u0430\u0440\u043d\u044b\u0439 \u0438\u043d\u043a\u0440\u0435\u043c\u0435\u043d\u0442 \u0441\u0447\u0451\u0442\u0447\u0438\u043a\u0430 (\u043a\u0440\u043e\u043c\u0435 \u0430\u0432\u0442\u043e\u0440\u0430).",
+                    "request": {
+                        "url": {
+                            "host": "{{baseUrl}}",
+                            "path": "api\/v1\/videos\/:video_id\/view",
+                            "query": [],
+                            "raw": "{{baseUrl}}\/api\/v1\/videos\/:video_id\/view",
+                            "variable": [
+                                {
+                                    "id": "video_id",
+                                    "key": "video_id",
+                                    "value": 16,
+                                    "description": "The ID of the video."
+                                }
+                            ]
+                        },
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application\/json"
+                            },
+                            {
+                                "key": "Accept",
+                                "value": "application\/json"
+                            }
+                        ],
+                        "body": null,
+                        "description": "POST \/api\/v1\/videos\/{id}\/view",
+                        "auth": {
+                            "type": "noauth"
+                        }
+                    },
+                    "response": []
+                },
+                {
                     "name": "Authenticate the request for channel access.",
                     "request": {
                         "url": {
@@ -1197,8 +1710,8 @@
                                     "value": "*"
                                 }
                             ],
-                            "code": 403,
-                            "body": "{\"message\":\"\\u0412\\u043d\\u0443\\u0442\\u0440\\u0435\\u043d\\u043d\\u044f\\u044f \\u043e\\u0448\\u0438\\u0431\\u043a\\u0430 \\u0441\\u0435\\u0440\\u0432\\u0435\\u0440\\u0430\"}",
+                            "code": 401,
+                            "body": "{\"message\":\"\\u041d\\u0435\\u043e\\u0431\\u0445\\u043e\\u0434\\u0438\\u043c\\u0430 \\u0430\\u0432\\u0442\\u043e\\u0440\\u0438\\u0437\\u0430\\u0446\\u0438\\u044f\"}",
                             "name": ""
                         }
                     ]
