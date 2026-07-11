@@ -11,6 +11,8 @@ interface VideoRepositoryInterface
     public function find(int $id): Video;
     public function update(Video $video, array $data): Video;
     public function delete(Video $video): void;
+    public function countAll(): int;
     public function countByStatus(string $status): int;
     public function countActiveByUser(int $userId): int;
+    public function sumLikes(): int;
 }

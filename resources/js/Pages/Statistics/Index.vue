@@ -16,7 +16,23 @@ const props = defineProps({
 const from = ref(props.filters?.from || '')
 const to   = ref(props.filters?.to   || '')
 
+const presets = ['day', 'week', 'month']
+const period = ref(
+    props.filters?.from || props.filters?.to
+        ? 'custom'
+        : (props.filters?.period || 'day')
+)
+
+function setPeriod(p) {
+    period.value = p
+    from.value = ''
+    to.value = ''
+    router.get(route('statistics.index'), { period: p }, { preserveState: true })
+}
+
 function applyFilter() {
+    if (!from.value && !to.value) return
+    period.value = 'custom'
     router.get(route('statistics.index'), { from: from.value || undefined, to: to.value || undefined }, { preserveState: true })
 }
 </script>
@@ -26,8 +42,20 @@ function applyFilter() {
     <template #header>{{ t('nav.statistics') }}</template>
 
     <div class="space-y-6">
-      <!-- Date filter -->
+      <!-- Period filter: presets + custom range -->
       <div class="flex gap-3 items-end flex-wrap">
+        <div class="flex rounded-btn overflow-hidden border border-line dark:border-dline">
+          <button
+            v-for="p in presets" :key="p"
+            @click="setPeriod(p)"
+            class="px-4 py-2 text-sm font-bold transition"
+            :class="period === p
+              ? 'bg-blue text-white'
+              : 'bg-white dark:bg-dcard text-ink dark:text-slate-100 hover:bg-surface dark:hover:bg-dbg'"
+          >
+            {{ t('statistics.' + p) }}
+          </button>
+        </div>
         <div>
           <label class="block text-xs font-semibold text-muted mb-1">{{ t('statistics.from') }}</label>
           <input v-model="from" type="date" class="input" />
@@ -36,7 +64,13 @@ function applyFilter() {
           <label class="block text-xs font-semibold text-muted mb-1">{{ t('statistics.to') }}</label>
           <input v-model="to" type="date" class="input" />
         </div>
-        <button @click="applyFilter" class="px-4 py-2 rounded-btn bg-blue text-white text-sm font-bold hover:bg-blue/90 transition">
+        <button
+          @click="applyFilter"
+          class="px-4 py-2 rounded-btn text-sm font-bold transition"
+          :class="period === 'custom'
+            ? 'bg-blue text-white hover:bg-blue/90'
+            : 'border border-line dark:border-dline bg-white dark:bg-dcard text-ink dark:text-slate-100 hover:bg-surface dark:hover:bg-dbg'"
+        >
           {{ t('actions.apply') }}
         </button>
       </div>

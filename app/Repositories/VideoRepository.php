@@ -34,6 +34,11 @@ class VideoRepository implements VideoRepositoryInterface
         $video->delete();
     }
 
+    public function countAll(): int
+    {
+        return Video::count();
+    }
+
     public function countByStatus(string $status): int
     {
         return Video::where('status', $status)->count();
@@ -44,5 +49,10 @@ class VideoRepository implements VideoRepositoryInterface
         return Video::where('user_id', $userId)
             ->where('status', 'approved')
             ->count();
+    }
+
+    public function sumLikes(): int
+    {
+        return (int) Video::sum('likes_count');
     }
 }

@@ -4,6 +4,7 @@ namespace App\Repositories;
 
 use App\Models\User;
 use App\Repositories\Interfaces\UserRepositoryInterface;
+use Carbon\CarbonInterface;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 
 class UserRepository implements UserRepositoryInterface
@@ -18,6 +19,21 @@ class UserRepository implements UserRepositoryInterface
             ->latest()
             ->paginate($perPage)
             ->withQueryString();
+    }
+
+    public function countUsers(): int
+    {
+        return User::where('role', 'user')->count();
+    }
+
+    public function countBlocked(): int
+    {
+        return User::where('role', 'user')->where('status', 'blocked')->count();
+    }
+
+    public function countRegisteredBetween(CarbonInterface $from, CarbonInterface $to): int
+    {
+        return User::where('role', 'user')->whereBetween('created_at', [$from, $to])->count();
     }
 
     public function find(int $id): User
