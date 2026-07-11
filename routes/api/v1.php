@@ -71,7 +71,21 @@ Route::prefix('v1')->middleware(\App\Http\Middleware\SetApiLocale::class)->group
         Route::patch('/read', [ChatController::class, 'markRead']);
     });
 
+    // Причины жалоб (публичный справочник — для формы жалобы, ТЗ 8.3)
+    Route::get('/complaint-reasons', [ComplaintReasonController::class, 'index']);
+
+    Route::middleware('auth:sanctum')->group(function () {
+        // Отзывы и жалобы уходят на модерацию (ТЗ 8.2/8.3);
+        // заблокированный пользователь публиковать контент не может (ТЗ 13.3)
+        Route::post('/reviews', [ReviewController::class, 'store'])->middleware(['not_blocked', 'throttle:10,1']);
+        Route::post('/complaints', [ComplaintController::class, 'store'])->middleware(['not_blocked', 'throttle:10,1']);
+
+        // Избранное (ТЗ 8.1)
+        Route::get('/favorites', [FavoriteController::class, 'index']);
+        Route::post('/favorites', [FavoriteController::class, 'store']);
+        Route::delete('/favorites/{listing}', [FavoriteController::class, 'destroy']);
+    });
+
     // TODO: Добавить остальные resources
     // - Videos (ролики)
-    // - Reviews (отзывы)
 });

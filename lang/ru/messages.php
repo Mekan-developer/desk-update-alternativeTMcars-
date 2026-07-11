@@ -28,8 +28,15 @@ return [
     'message_sent'        => 'Сообщение отправлено',
     'chat_marked_read'    => 'Отмечено как прочитанное',
 
-    'review_approved' => 'Отзыв одобрен',
-    'review_rejected' => 'Отзыв отклонён',
+    'review_approved'  => 'Отзыв одобрен',
+    'review_rejected'  => 'Отзыв отклонён',
+    'review_submitted' => 'Отзыв отправлен на модерацию',
+
+    'complaint_submitted' => 'Жалоба отправлена',
+    'complaint_resolved'  => 'Жалоба решена',
+
+    'favorite_added'   => 'Добавлено в избранное',
+    'favorite_removed' => 'Удалено из избранного',
 
     'category_max_level' => 'Нельзя создать категорию глубже 3 уровней',
     'category_parent_invalid' => 'Категория не может быть родителем сама для себя или своего потомка',

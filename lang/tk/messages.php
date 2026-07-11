@@ -28,8 +28,15 @@ return [
     'message_sent'        => 'Habar iberildi',
     'chat_marked_read'    => 'Okalan diýip bellenildi',
 
-    'review_approved' => 'Syn tassyklandy',
-    'review_rejected' => 'Syn ret edildi',
+    'review_approved'  => 'Syn tassyklandy',
+    'review_rejected'  => 'Syn ret edildi',
+    'review_submitted' => 'Syn barlaga iberildi',
+
+    'complaint_submitted' => 'Şikaýat iberildi',
+    'complaint_resolved'  => 'Şikaýat çözüldi',
+
+    'favorite_added'   => 'Halanýanlara goşuldy',
+    'favorite_removed' => 'Halanýanlardan aýryldy',
 
     'category_max_level' => '3 derejeden çuňňur kategoriýa döredip bolmaz',
     'category_parent_invalid' => 'Kategoriýa öz-özüne ýa-da öz nesline eýe bolup bilmez',
