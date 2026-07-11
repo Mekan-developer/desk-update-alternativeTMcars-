@@ -1,0 +1,41 @@
+meta {
+  name: Оставить отзыв
+  type: http
+  seq: 1
+}
+
+post {
+  url: {{base_url}}/v1/reviews
+  body: json
+}
+
+headers {
+  Accept: application/json
+  Accept-Language: ru
+  Authorization: Bearer {{token}}
+}
+
+body:json {
+  {
+    "text": "Отличный продавец, рекомендую",
+    "rating": 5,
+    "listing_id": 1
+  }
+}
+
+docs {
+  Отзыв об объявлении ИЛИ о пользователе — ровно один из listing_id /
+  target_user_id (ТЗ 8.2). rating опционален (1–5). Отзыв создаётся
+  в статусе pending и уходит на модерацию в админку (/reviews).
+  Заблокированный пользователь получает 403.
+}
+
+tests {
+  test("status is 201", function() {
+    expect(res.getStatus()).to.equal(201);
+  });
+
+  test("review is pending", function() {
+    expect(res.getBody().data.status).to.equal('pending');
+  });
+}

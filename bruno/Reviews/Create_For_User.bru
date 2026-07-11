@@ -1,0 +1,43 @@
+meta {
+  name: Оставить отзыв о пользователе
+  type: http
+  seq: 2
+}
+
+post {
+  url: {{base_url}}/v1/reviews
+  body: json
+}
+
+headers {
+  Accept: application/json
+  Accept-Language: ru
+  Authorization: Bearer {{token}}
+}
+
+body:json {
+  {
+    "text": "Надёжный человек, сделка прошла отлично",
+    "rating": 5,
+    "target_user_id": 1
+  }
+}
+
+docs {
+  Отзыв о пользователе (ТЗ 8.2): target_user_id вместо listing_id —
+  ровно один из двух, оба сразу или ни одного → 422.
+  Статус pending, уходит на модерацию в админку (/reviews).
+}
+
+tests {
+  test("status is 201", function() {
+    expect(res.getStatus()).to.equal(201);
+  });
+
+  test("review targets a user", function() {
+    const data = res.getBody().data;
+    expect(data.status).to.equal('pending');
+    expect(data.target_user_id).to.not.be.a('null');
+    expect(data.listing_id).to.be.a('null');
+  });
+}

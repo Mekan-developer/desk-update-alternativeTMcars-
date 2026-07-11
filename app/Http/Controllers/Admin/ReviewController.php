@@ -19,13 +19,13 @@ class ReviewController extends Controller
     public function index(Request $request)
     {
         return Inertia::render('Reviews/Index', [
-            'reviews'          => $this->reviewRepository->paginate($request->only('status')),
+            'reviews'          => $this->reviewRepository->paginate($request->only('status', 'search')),
             'rejectionReasons' => RejectionReason::where('type', 'review')->where('is_active', true)->get(),
-            'filters'          => $request->only('status'),
+            'filters'          => $request->only('status', 'search'),
             'counts'           => [
                 'pending'  => $this->reviewRepository->countPending(),
-                'approved' => Review::where('status', 'approved')->count(),
-                'rejected' => Review::where('status', 'rejected')->count(),
+                'approved' => $this->reviewRepository->countByStatus('approved'),
+                'rejected' => $this->reviewRepository->countByStatus('rejected'),
             ],
         ]);
     }
